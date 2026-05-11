@@ -412,3 +412,38 @@
 .sponsor-section h4 {
   color: #ffcc00; /* Título combina com o botão */
 }
+
+/* =========================================
+   FORÇAR ESTILO DO RODAPÉ PREMIUM
+   ========================================= */
+.app-footer a {
+  text-decoration: none !important;
+}
+
+.btn-whatsapp {
+  display: inline-block !important;
+  background-color: #25D366 !important;
+  color: #ffffff !important;
+  padding: 12px 24px !important;
+  border-radius: 8px !important;
+  font-weight: bold !important;
+  margin-top: 10px !important;
+}
+
+.btn-sponsor {
+  background-color: #ffcc00 !important;
+  color: #000000 !important;
+}
+
+.dev-contact {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 3px solid #3ea6ff;
+}
+
+.dev-link {
+  color: #aaaaaa !important;
+  display: block;
+  margin-top: 8px;
+}

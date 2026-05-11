@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { db, messaging } from './firebase'; // <-- messaging importado aqui
-import { collection, onSnapshot, query, orderBy, doc } from 'firebase/firestore';
-import { getToken } from 'firebase/messaging'; // <-- getToken importado aqui
+import { db, messaging } from './firebase';
+import { collection, onSnapshot, query, orderBy, doc, setDoc } from 'firebase/firestore';
+import { getToken } from 'firebase/messaging';
 import './Home.css'; 
 
 export default function Home() {
@@ -18,7 +18,7 @@ export default function Home() {
   useEffect(() => {
     const q = query(collection(db, "videos"), orderBy("dataCadastro", "desc"));
     const unsubscribeVideos = onSnapshot(q, (snapshot) => {
-      const videosData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const videosData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
       setVideos(videosData);
       
       const videosVisiveis = videosData.filter(v => !v.oculto);
@@ -49,9 +49,6 @@ export default function Home() {
     return () => { unsubscribeVideos(); unsubscribeConfig(); unsubSplash(); };
   }, [videoAtual, splashImg]);
 
-  // ==========================================
-  // FUNÇÃO DE NOTIFICAÇÃO PUSH (Faltava isso!)
-  // ==========================================
   const pedirPermissaoNotificacao = async () => {
     try {
       const permission = await Notification.requestPermission();
@@ -60,10 +57,11 @@ export default function Home() {
           vapidKey: 'BKQttoVmCcyQH5J4wKalKmTTBde-Hi3HD2Dmi4wgczitfNSu58kJ6tBWC96WI7PiouYIgwTOa_vTFzQspe9vBu8' 
         });
         if (token) {
-          alert('🔔 Uhuu! Você ativou os alertas com sucesso. Agora você não perde nenhum lance!');
+          await setDoc(doc(db, 'tokens', token), { token: token, data: new Date() });
+          alert('🔔 Uhuu! Você ativou os alertas. Obrigado por apoiar o Futebol Raiz!');
         }
       } else {
-        alert('Você bloqueou os alertas. Ative no cadeado do navegador para ser avisado dos jogos!');
+        alert('Você bloqueou os alertas. Ative no cadeado do navegador para não perder os jogos!');
       }
     } catch (error) {
       console.error('Erro ao ativar notificações:', error);
@@ -102,7 +100,7 @@ export default function Home() {
       try {
         await navigator.share({
           title: 'Futebol Raiz - FG',
-          text: 'Assista aos melhores jogos de futebol society e base!',
+          text: 'Venha apoiar nossos atletas! Assista aos melhores jogos de futebol society e base!',
           url: window.location.origin, 
         });
       } catch (error) {}
@@ -127,11 +125,7 @@ export default function Home() {
       {mostrarSplash && (
         <div 
           onClick={() => setMostrarSplash(false)}
-          style={{
-            position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-            backgroundColor: '#000', zIndex: 99999, display: 'flex',
-            justifyContent: 'center', alignItems: 'center', cursor: 'pointer'
-          }}
+          style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: '#000', zIndex: 99999, display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}
         >
           <img src={splashImg} alt="Anúncio" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
@@ -179,21 +173,10 @@ export default function Home() {
           </div>
 
           <div className="action-buttons">
-            <button className="btn-action" onClick={compartilharApp}>
-              📤 Compartilhar
-            </button>
-
-            <a href={`https://www.youtube.com/watch?v=${videoAtual.videoId || pegarIdDoVideo(videoAtual.url)}`} target="_blank" rel="noopener noreferrer" className="btn-action">
-              👍 Curtir
-            </a>
-
-            <button className="btn-action" onClick={pedirPermissaoNotificacao} style={{ background: '#e62117', color: '#fff' }}>
-              🔔 Alertas
-            </button>
-            
-            <a href="https://www.youtube.com/@futebolraiz-fg?sub_confirmation=1" target="_blank" rel="noopener noreferrer" className="btn-action btn-inscrever">
-              🔴 Inscrever-se
-            </a>
+            <button className="btn-action" onClick={compartilharApp}>📤 Compartilhar</button>
+            <a href={`https://www.youtube.com/watch?v=${videoAtual.videoId || pegarIdDoVideo(videoAtual.url)}`} target="_blank" rel="noopener noreferrer" className="btn-action">👍 Curtir</a>
+            <button className="btn-action" onClick={pedirPermissaoNotificacao} style={{ background: '#e62117', color: '#fff' }}>🔔 Alertas</button>
+            <a href="https://www.youtube.com/@futebolraiz-fg?sub_confirmation=1" target="_blank" rel="noopener noreferrer" className="btn-action btn-inscrever">🔴 Inscrever-se</a>
           </div>
         </>
       ) : (
@@ -233,32 +216,18 @@ export default function Home() {
         ))}
       </div>
 
-      {/* RODAPÉ PREMIUM */}
       <footer className="app-footer">
         <div className="footer-content">
-          
           <div className="footer-section">
             <h4>🎥 Transmita seu Campeonato</h4>
-            <p>Aumente a visibilidade do seu torneio com transmissões ao vivo em alta qualidade, narração e placar na tela.</p>
-            <a 
-              href="https://wa.me/5519998584530?text=Olá%20Flávio!%20Quero%20fazer%20uma%20transmissão%20do%20meu%20campeonato." 
-              target="_blank" rel="noopener noreferrer" className="btn-whatsapp"
-            >
-              📲 Orçamento de Transmissão
-            </a>
+            <p>Aumente a visibilidade do seu torneio com transmissões ao vivo em alta qualidade.</p>
+            <a href="https://wa.me/5519998584530?text=Olá%20Flávio!%20Quero%20fazer%20uma%20transmissão%20do%20meu%20campeonato." target="_blank" rel="noopener noreferrer" className="btn-whatsapp">📲 Orçamento de Transmissão</a>
           </div>
-
           <div className="footer-section sponsor-section">
             <h4>🚀 Divulgue sua Marca</h4>
-            <p>Apareça para milhares de apaixonados por futebol! Anuncie na tela de abertura do App ou durante nossas transmissões ao vivo.</p>
-            <a 
-              href="https://wa.me/5519998584530?text=Olá%20Flávio!%20Tenho%20interesse%20em%20anunciar%20minha%20marca%20no%20app%20Futebol%20Raiz." 
-              target="_blank" rel="noopener noreferrer" className="btn-whatsapp btn-sponsor"
-            >
-              💼 Seja um Patrocinador
-            </a>
+            <p>Apareça para milhares de apaixonados por futebol! Anuncie na tela de abertura do App.</p>
+            <a href="https://wa.me/5519998584530?text=Olá%20Flávio!%20Tenho%20interesse%20em%20anunciar%20minha%20marca%20no%20app%20Futebol%20Raiz." target="_blank" rel="noopener noreferrer" className="btn-whatsapp btn-sponsor">💼 Seja um Patrocinador</a>
           </div>
-          
           <div className="footer-section dev-contact">
             <h4>💻 Desenvolvedor</h4>
             <span className="dev-name">Geraldo Filho</span>
@@ -266,7 +235,6 @@ export default function Home() {
             <a href="https://wa.me/5519999371408?text=Olá%20Geraldo!%20Gostaria%20de%20um%20orçamento%20para%20criar%20um%20app." className="dev-link">📱 WhatsApp: (19) 99937-1408</a>
             <a href="mailto:geraldof1978@gmail.com" className="dev-link">✉️ E-mail: geraldof1978@gmail.com</a>
           </div>
-
         </div>
         <div className="footer-bottom">
           <p>&copy; {new Date().getFullYear()} Futebol Raiz - FG. Todos os direitos reservados.</p>

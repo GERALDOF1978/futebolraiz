@@ -3,21 +3,17 @@ import { db } from './firebase';
 import { collection, addDoc, getDocs, doc, updateDoc, query, where, onSnapshot, setDoc, orderBy } from 'firebase/firestore';
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 
-// ==========================================
-// SUAS CHAVES FIXAS 
-// ==========================================
 const MINHA_API_KEY = "AIzaSyD6cX5F356OhIxIscJZ9bhkevjX7VMmdrU";
 const MEU_CANAL_ID = "UCGB8jiI52Z5NaQbCwnEkF3A"; 
-const IMGBB_API_KEY = "4b9754c2755159cb53d4ac84ddb27f8d"; // Sua chave do ImgBB
+const IMGBB_API_KEY = "4b9754c2755159cb53d4ac84ddb27f8d";
 
 export default function Admin() {
-  // Estados de Login
+  // 1. TODOS OS ESTADOS NO TOPO (Regra do React)
   const [usuario, setUsuario] = useState(null);
   const [emailLogin, setEmailLogin] = useState('');
   const [senhaLogin, setSenhaLogin] = useState('');
   const [erroLogin, setErroLogin] = useState('');
 
-  // Estados dos Vídeos e Configurações
   const [url, setUrl] = useState('');
   const [titulo, setTitulo] = useState('');
   const [infoExtra, setInfoExtra] = useState('');
@@ -26,100 +22,91 @@ export default function Admin() {
   const [videosLista, setVideosLista] = useState([]);
   const [mostrarStats, setMostrarStats] = useState(true);
 
-  // Estados do Splash Screen
   const [splashImagem, setSplashImagem] = useState(null);
   const [splashDataHora, setSplashDataHora] = useState('');
   const [splashMsg, setSplashMsg] = useState('');
 
+  // Estados do Alerta Push
+  const [tituloAlerta, setTituloAlerta] = useState('');
+  const [textoAlerta, setTextoAlerta] = useState('');
+  const [statusEnvio, setStatusEnvio] = useState('');
+
   const auth = getAuth();
 
   useEffect(() => {
-    // 1. Escuta o Login
-    const unsubAuth = onAuthStateChanged(auth, (user) => {
-      setUsuario(user);
-    });
+    const unsubAuth = onAuthStateChanged(auth, (user) => setUsuario(user));
 
-    // 2. Escuta os vídeos na ordem correta
     const qVideos = query(collection(db, "videos"), orderBy("dataCadastro", "desc"));
     const unsubVideos = onSnapshot(qVideos, (snapshot) => {
       setVideosLista(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
     });
 
-    // 3. Escuta a configuração de mostrar estatísticas
     const unsubConfig = onSnapshot(doc(db, "config", "geral"), (docSnap) => {
-      if (docSnap.exists()) {
-        setMostrarStats(docSnap.data().mostrarStats ?? true);
-      }
+      if (docSnap.exists()) setMostrarStats(docSnap.data().mostrarStats ?? true);
     });
 
     return () => { unsubAuth(); unsubVideos(); unsubConfig(); };
   }, [auth]);
 
   // ==========================================
-  // LOGIN E LOGOUT
+  // FUNÇÕES DE AÇÃO
   // ==========================================
   const fazerLogin = async (e) => {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, emailLogin, senhaLogin);
       setErroLogin('');
-    } catch (error) {
-      setErroLogin('E-mail ou senha incorretos.');
-    }
+    } catch (error) { setErroLogin('E-mail ou senha incorretos.'); }
   };
 
   const sair = () => signOut(auth);
 
-  // ==========================================
-  // FUNÇÕES DO SPLASH SCREEN
-  // ==========================================
+  const dispararAlerta = async (e) => {
+    e.preventDefault();
+    setStatusEnvio('A processar envio para a comunidade...');
+    
+    try {
+      const response = await fetch('/api/enviar-alerta', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ titulo: tituloAlerta, mensagem: textoAlerta }),
+      });
+
+      if (response.ok) {
+        setStatusEnvio('✅ Alerta enviado com sucesso para a nossa rede de apoio!');
+        setTituloAlerta('');
+        setTextoAlerta('');
+      } else {
+        setStatusEnvio('❌ Erro ao disparar alerta.');
+      }
+    } catch (error) {
+      setStatusEnvio('❌ Falha na ligação com o servidor.');
+    }
+  };
+
   const salvarSplash = async (e) => {
     e.preventDefault();
-    if (!splashImagem || !splashDataHora) {
-      setSplashMsg('⚠️ Escolha uma imagem e defina a data/hora.');
-      return;
-    }
-    
-    setSplashMsg('⏳ Enviando imagem para o ImgBB e configurando...');
+    if (!splashImagem || !splashDataHora) { setSplashMsg('⚠️ Escolha uma imagem e defina a data/hora.'); return; }
+    setSplashMsg('⏳ A enviar para o servidor...');
     
     try {
       const formData = new FormData();
       formData.append('image', splashImagem);
-      
-      const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-        method: 'POST',
-        body: formData
-      });
+      const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
       const dataImg = await res.json();
       
-      if (!dataImg.data || !dataImg.data.url) {
-        throw new Error('Falha ao enviar imagem');
-      }
+      if (!dataImg.data || !dataImg.data.url) throw new Error('Falha ao enviar imagem');
       
-      const imageUrl = dataImg.data.url;
-      const dataExpiracao = new Date(splashDataHora).toISOString();
-      
-      await setDoc(doc(db, "config", "splash"), {
-        urlImagem: imageUrl,
-        expiraEm: dataExpiracao,
-        ativo: true
-      });
-
-      setSplashMsg('✅ Splash Screen configurado com sucesso!');
-      setSplashImagem(null);
-    } catch (error) {
-      setSplashMsg('❌ Erro ao configurar Splash. Verifique a imagem.');
-    }
+      await setDoc(doc(db, "config", "splash"), { urlImagem: dataImg.data.url, expiraEm: new Date(splashDataHora).toISOString(), ativo: true });
+      setSplashMsg('✅ Splash Screen configurado!'); setSplashImagem(null);
+    } catch (error) { setSplashMsg('❌ Erro ao configurar Splash.'); }
   };
 
   const desativarSplash = async () => {
     await setDoc(doc(db, "config", "splash"), { ativo: false }, { merge: true });
-    setSplashMsg('✅ Splash desativado manualmente.');
+    setSplashMsg('✅ Splash desativado.');
   };
 
-  // ==========================================
-  // FUNÇÕES DE VÍDEOS
-  // ==========================================
   const pegarIdDoVideo = (link) => {
     if (!link) return '';
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -130,19 +117,42 @@ export default function Admin() {
   const alternarVisibilidade = async (id, tituloVideo, estaOculto) => {
     const statusAtual = estaOculto === true; 
     const acao = statusAtual ? "RESTAURAR" : "OCULTAR";
-    
     if (window.confirm(`Tem certeza que deseja ${acao} o vídeo: "${tituloVideo}"?`)) {
-      try {
-        await updateDoc(doc(db, "videos", id), { oculto: !statusAtual });
-      } catch (error) {
-        alert(`Erro ao ${acao.toLowerCase()} vídeo.`);
-      }
+      try { await updateDoc(doc(db, "videos", id), { oculto: !statusAtual }); } catch (error) { alert(`Erro ao ${acao.toLowerCase()} vídeo.`); }
     }
   };
 
   const salvarConfigStats = async (valor) => {
     setMostrarStats(valor);
     await setDoc(doc(db, "config", "geral"), { mostrarStats: valor }, { merge: true });
+  };
+
+  const buscarVideosNovos = async () => {
+    if (!MINHA_API_KEY || !MEU_CANAL_ID || MEU_CANAL_ID.includes("COLE")) { setSyncMsg('⚠️ API Key ou Canal ID não configurados!'); return; }
+    setSyncMsg('A procurar vídeos novos no canal...');
+    try {
+      const uploadsPlaylistId = MEU_CANAL_ID.replace(/^UC/, 'UU');
+      const response = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${uploadsPlaylistId}&key=${MINHA_API_KEY}`);
+      const data = await response.json();
+      if (!data.items) { setSyncMsg('❌ Canal não encontrado ou sem vídeos.'); return; }
+      let novosAdicionados = 0;
+      for (const item of data.items) {
+        const videoId = item.snippet.resourceId.videoId;
+        const q = query(collection(db, "videos"), where("videoId", "==", videoId));
+        const querySnapshot = await getDocs(q);
+        if (querySnapshot.empty) {
+          await addDoc(collection(db, "videos"), {
+            videoId: videoId, url: `https://www.youtube.com/watch?v=${videoId}`,
+            title: item.snippet.title, thumb: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+            extraInfo: item.snippet.description.substring(0, 100) + '...',
+            dataCadastro: new Date(item.snippet.publishedAt), views: '0', likes: '0', local: 'YouTube', oculto: false
+          });
+          novosAdicionados++;
+        }
+      }
+      if (novosAdicionados > 0) setSyncMsg(`🎉 ${novosAdicionados} vídeos baixados!`);
+      else setSyncMsg(`👍 Tudo atualizado.`);
+    } catch (error) { setSyncMsg('❌ Erro na busca.'); }
   };
 
   const sincronizarYouTube = async () => {
@@ -179,45 +189,9 @@ export default function Admin() {
     }
   };
 
-  const buscarVideosNovos = async () => {
-    if (!MINHA_API_KEY || !MEU_CANAL_ID || MEU_CANAL_ID.includes("COLE")) { 
-      setSyncMsg('⚠️ API Key ou Canal ID não configurados!'); return; 
-    }
-    setSyncMsg('Procurando vídeos novos no canal...');
-
-    try {
-      const uploadsPlaylistId = MEU_CANAL_ID.replace(/^UC/, 'UU');
-      const response = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${uploadsPlaylistId}&key=${MINHA_API_KEY}`);
-      const data = await response.json();
-
-      if (!data.items) { setSyncMsg('❌ Canal não encontrado ou sem vídeos.'); return; }
-
-      let novosAdicionados = 0;
-      for (const item of data.items) {
-        const videoId = item.snippet.resourceId.videoId;
-        const q = query(collection(db, "videos"), where("videoId", "==", videoId));
-        const querySnapshot = await getDocs(q);
-
-        if (querySnapshot.empty) {
-          await addDoc(collection(db, "videos"), {
-            videoId: videoId, url: `https://www.youtube.com/watch?v=${videoId}`,
-            title: item.snippet.title, thumb: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
-            extraInfo: item.snippet.description.substring(0, 100) + '...',
-            dataCadastro: new Date(item.snippet.publishedAt), views: '0', likes: '0', local: 'YouTube', oculto: false
-          });
-          novosAdicionados++;
-        }
-      }
-      if (novosAdicionados > 0) setSyncMsg(`🎉 ${novosAdicionados} vídeos novos baixados!`);
-      else setSyncMsg(`👍 Tudo certo! O app já tem todos os vídeos.`);
-    } catch (error) {
-      setSyncMsg('❌ Erro ao buscar novos vídeos.');
-    }
-  };
-
   const salvarVideo = async (e) => {
     e.preventDefault();
-    setMensagem('Salvando...');
+    setMensagem('A salvar...');
     const videoId = pegarIdDoVideo(url);
     if (!videoId) { setMensagem('URL inválida!'); return; }
     try {
@@ -226,11 +200,11 @@ export default function Admin() {
         extraInfo: infoExtra, dataCadastro: new Date(), views: 0, likes: 0, local: 'Manual', oculto: false
       });
       setMensagem('Vídeo adicionado com sucesso!'); setUrl(''); setTitulo(''); setInfoExtra('');
-    } catch (error) { setMensagem('Erro ao salvar vídeo.'); }
+    } catch (error) { setMensagem('Erro ao salvar.'); }
   };
 
   // ==========================================
-  // RENDERIZAÇÃO TELA DE LOGIN
+  // TELA DE LOGIN (BLOQUEIO)
   // ==========================================
   if (!usuario) {
     return (
@@ -239,7 +213,7 @@ export default function Admin() {
           <h2 style={{ color: '#e62117', textAlign: 'center', marginBottom: '20px' }}>🔒 Acesso Restrito</h2>
           <input type="email" placeholder="E-mail Administrativo" value={emailLogin} onChange={e => setEmailLogin(e.target.value)} style={inputStyle} required />
           <input type="password" placeholder="Senha" value={senhaLogin} onChange={e => setSenhaLogin(e.target.value)} style={inputStyle} required />
-          <button type="submit" style={{...btnStyle, width: '100%', marginTop: '15px'}}>Entrar no Painel</button>
+          <button type="submit" style={{...btnStyle, width: '100%', marginTop: '15px', backgroundColor: '#e62117'}}>Entrar no Painel</button>
           {erroLogin && <p style={{ color: '#ff4d4d', marginTop: '10px', textAlign: 'center' }}>{erroLogin}</p>}
         </form>
       </div>
@@ -247,20 +221,48 @@ export default function Admin() {
   }
 
   // ==========================================
-  // RENDERIZAÇÃO PAINEL ADMIN (LOGADO)
+  // PAINEL DE ADMINISTRAÇÃO (LOGADO)
   // ==========================================
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', color: '#fff' }}>
+      
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
         <h2 style={{ color: '#e62117' }}>Painel Admin - Futebol Raiz</h2>
         <button onClick={sair} style={{ backgroundColor: '#444', color: '#fff', border: '1px solid #666', padding: '8px 16px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>Sair (Logout)</button>
+      </div>
+
+      {/* 📢 DISPARAR ALERTAS (PUSH) */}
+      <div style={{ background: '#1a1a1a', border: '1px solid #333', padding: '20px', borderRadius: '10px', marginTop: '20px' }}>
+        <h3 style={{ color: '#ff4d4d' }}>📢 Enviar Alerta Push (Comunidade)</h3>
+        <p style={{ fontSize: '13px', color: '#aaa', marginBottom: '15px' }}>Avise a todos que o jogo vai começar.</p>
+        
+        <form onSubmit={dispararAlerta} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <input 
+            type="text" 
+            placeholder="Título (Ex: Jogo ao Vivo!)" 
+            value={tituloAlerta} 
+            onChange={(e) => setTituloAlerta(e.target.value)} 
+            style={inputStyle} 
+            required 
+          />
+          <textarea 
+            placeholder="Mensagem (Ex: Venha apoiar o Sub-12 do Independente!)" 
+            value={textoAlerta} 
+            onChange={(e) => setTextoAlerta(e.target.value)} 
+            rows="2" 
+            style={inputStyle} 
+            required 
+          />
+          <button type="submit" style={{ ...btnStyle, backgroundColor: '#e62117' }}>Disparar Alerta Agora</button>
+        </form>
+        {statusEnvio && <p style={{ marginTop: '10px', fontWeight: 'bold', color: '#00ff88' }}>{statusEnvio}</p>}
       </div>
 
       {/* 🚀 CONFIGURAÇÃO DO SPLASH SCREEN */}
       <div style={{ background: '#1a1a1a', border: '1px solid #333', padding: '20px', borderRadius: '10px', marginTop: '20px' }}>
         <h3 style={{ color: '#00ff88' }}>🚀 Anúncio de Abertura (Splash Screen)</h3>
         <p style={{ fontSize: '14px', color: '#aaa', marginBottom: '15px' }}>
-          Faça upload de uma imagem patrocinada e defina até quando ela deve aparecer na abertura do app. (1080 x 1920 px  9:16 (vertical))
+          Faça upload de uma imagem patrocinada e defina até quando ela deve aparecer na abertura do app.
         </p>
         <form onSubmit={salvarSplash} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <input type="file" accept="image/*" onChange={(e) => setSplashImagem(e.target.files[0])} style={inputStyle} required />
@@ -275,31 +277,27 @@ export default function Admin() {
         {splashMsg && <p style={{ marginTop: '15px', color: '#fff', fontWeight: 'bold', background: 'rgba(255,255,255,0.1)', padding: '10px', borderRadius: '5px' }}>{splashMsg}</p>}
       </div>
       
-      {/* ⚙️ CONFIGURAÇÕES GERAIS */}
+      {/* ⚙️ CONFIGURAÇÕES E YOUTUBE */}
       <div style={{ background: '#1a1a1a', border: '1px solid #333', padding: '20px', borderRadius: '10px', marginTop: '20px' }}>
-        <h3 style={{ color: '#ffcc00' }}>⚙️ Configurações do App</h3>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', marginTop: '10px' }}>
+        <h3 style={{ color: '#ffcc00' }}>⚙️ Automação e Estatísticas</h3>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', marginTop: '10px', marginBottom: '15px' }}>
           <input 
             type="checkbox" 
             checked={mostrarStats} 
             onChange={(e) => salvarConfigStats(e.target.checked)} 
             style={{ width: '20px', height: '20px', accentColor: '#e62117' }}
           />
-          <span style={{ fontSize: '15px' }}>Exibir Visualizações e Curtidas no Aplicativo</span>
+          <span style={{ fontSize: '15px' }}>Exibir Visualizações e Curtidas no App</span>
         </label>
-      </div>
-
-      {/* 🤖 AUTOMAÇÃO YOUTUBE */}
-      <div style={{ background: '#1a1a1a', border: '1px solid #333', padding: '20px', borderRadius: '10px', marginTop: '20px' }}>
-        <h3 style={{ color: '#3ea6ff' }}>🤖 Automação do Canal</h3>
-        <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', marginTop: '15px' }}>
-          <button onClick={buscarVideosNovos} style={{ ...btnStyle, backgroundColor: '#00cc66', flex: 1 }}>📥 Importar Novos</button>
+        
+        <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+          <button onClick={buscarVideosNovos} style={{ ...btnStyle, backgroundColor: '#00cc66', flex: 1 }}>📥 Importar Novos (YouTube)</button>
           <button onClick={sincronizarYouTube} style={{ ...btnStyle, backgroundColor: '#3ea6ff', flex: 1 }}>🔄 Sincronizar Views</button>
         </div>
         {syncMsg && <p style={{ marginTop: '15px', color: '#fff', fontWeight: 'bold' }}>{syncMsg}</p>}
       </div>
 
-      {/* 👁️ GERENCIAR VÍDEOS (OCULTAR / RESTAURAR) */}
+      {/* 👁️ GERENCIAR VÍDEOS */}
       <div style={{ background: '#1a1a1a', border: '1px solid #333', padding: '20px', borderRadius: '10px', marginTop: '20px' }}>
         <h3 style={{ color: '#ffcc00' }}>👁️ Gerenciar Vídeos</h3>
         <p style={{ fontSize: '14px', color: '#aaa', marginBottom: '15px' }}>Total de vídeos no banco: {videosLista.length}</p>
@@ -341,7 +339,8 @@ export default function Admin() {
         </form>
         {mensagem && <p style={{ marginTop: '15px', color: '#00ff88' }}>{mensagem}</p>}
       </div>
-    </div>
+
+    </div> // Fim do Container Principal
   );
 }
 

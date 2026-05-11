@@ -99,8 +99,18 @@ export default function Home() {
           </div>
           
           {/* TÍTULO E DESCRIÇÃO CHAMATIVOS */}
+          
+          {/* TÍTULO, ESTATÍSTICAS E DESCRIÇÃO CHAMATIVOS */}
           <div className="video-info">
             <h2>{videoAtual.title}</h2>
+            
+            {/* NOSSA NOVA BARRA DE INFORMAÇÕES (Views, Likes e Local) */}
+            <div className="status-bar">
+               <span>👁️ {videoAtual.views || 0} visualizações</span>
+               <span>👍 {videoAtual.likes || 0} curtidas</span>
+               <span>🏟️ Local: {videoAtual.local || 'Não informado'}</span>
+            </div>
+
             <p className="admin-info">{videoAtual.extraInfo}</p>
           </div>
         </>

@@ -183,3 +183,44 @@
 }
 .player-section:fullscreen .btn-virar-tela, .player-section:-webkit-full-screen .btn-virar-tela { z-index: 9999; }
 
+/* =========================================
+   BOTÕES DE AÇÃO (COMPARTILHAR, LIKE, INSCREVER)
+   ========================================= */
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  padding: 0 20px 20px;
+  flex-wrap: wrap; /* Permite quebrar linha se a tela for muito fina */
+}
+
+.btn-action {
+  flex: 1; /* Faz os botões dividirem o espaço por igual */
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 12px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-action:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.btn-inscrever {
+  background: #e62117;
+  border-color: #e62117;
+}
+
+.btn-inscrever:hover {
+  background: #cc1a10;
+}

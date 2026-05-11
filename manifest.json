@@ -1,0 +1,20 @@
+{
+  "short_name": "Futebol Raiz",
+  "name": "Futebol Raiz - FG",
+  "icons": [
+    {
+      "src": "https://i.ibb.co/jZ5x1t1g/loginho.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://i.ibb.co/jZ5x1t1g/loginho.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#0f0f0f",
+  "background_color": "#0f0f0f"
+}

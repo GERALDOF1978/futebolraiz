@@ -46,7 +46,6 @@ export default function Home() {
       }
     });
 
-    // Escutador Blindado para o App Aberto
     const unsubscribeMensagens = onMessage(messaging, (payload) => {
       console.log('Alerta recebido!', payload);
       alert(`📢 NOVO ALERTA:\n\n${payload.notification.title}\n${payload.notification.body}`);
@@ -72,7 +71,7 @@ export default function Home() {
           alert('🔔 Uhuu! Você ativou os alertas e está a apoiar a nossa equipa!');
         }
       } else {
-        alert('Você bloqueou os alertas. Ative no cadeado do navegador para não perder o jogo!');
+        alert('Você bloqueou os alertas. Ative no cadeado do navegador para não perder nenhum jogo!');
       }
     } catch (error) {
       console.error('Erro ao ativar notificações:', error);
@@ -150,10 +149,10 @@ export default function Home() {
       </header>
 
       {videoAtual ? (
-        <>
+        // A SOLUÇÃO DEFINITIVA: Uma DIV com uma KEY única força a recriação limpa da tela
+        <div className="player-wrapper-master" key={`player-${videoAtual.id}`}>
           <div className="titulo-topo-player">
-            {/* BLINDAGEM CONTRA TRADUTORES (Evita o removeChild error) */}
-            <span dangerouslySetInnerHTML={{ __html: videoAtual.title }}></span>
+            <span>{videoAtual.title}</span>
           </div>
 
           <div className="player-section" ref={playerContainerRef}>
@@ -181,7 +180,7 @@ export default function Home() {
                  <span>🏟️ Local: {videoAtual.local || 'Não informado'}</span>
               </div>
             )}
-            <p className="admin-info" dangerouslySetInnerHTML={{ __html: videoAtual.extraInfo }}></p>
+            <p className="admin-info">{videoAtual.extraInfo}</p>
           </div>
 
           <div className="action-buttons">
@@ -190,9 +189,9 @@ export default function Home() {
             <button className="btn-action" onClick={pedirPermissaoNotificacao} style={{ background: '#e62117', color: '#fff' }}>🔔 Alertas</button>
             <a href="https://www.youtube.com/@futebolraiz-fg?sub_confirmation=1" target="_blank" rel="noopener noreferrer" className="btn-action btn-inscrever">🔴 Inscrever-se</a>
           </div>
-        </>
+        </div>
       ) : (
-        <div style={{ padding: '20px', textAlign: 'center' }}><p>A carregar vídeos...</p></div>
+        <div style={{ padding: '20px', textAlign: 'center' }} key="loading-state"><p>A carregar vídeos...</p></div>
       )}
 
       <div className="search-container">
@@ -201,14 +200,13 @@ export default function Home() {
 
       <h3 className="secao-titulo">Últimos Vídeos</h3>
       <div className="video-scroll-container">
-        {videosFiltrados.map((video) => (
+        {videosFiltrados.map((video, index) => (
           <div 
-            key={video.id} 
+            key={`list-${video.id}-${index}`} 
             className={`video-card-horizontal ${videoAtual?.id === video.id ? 'active-card' : ''}`} 
             onClick={() => tocarVideo(video)}
           >
             <div className="thumb-container">
-              {/* BLINDAGEM DE IMAGENS 404 */}
               <img 
                 src={video.thumb.replace('maxresdefault', 'hqdefault')} 
                 alt="Miniatura" 
@@ -225,8 +223,7 @@ export default function Home() {
             </div>
             <div className="card-info">
               <span className="video-date">{formatarData(video.dataCadastro)}</span>
-              {/* BLINDAGEM CONTRA TRADUTORES */}
-              <p className="card-title-small" dangerouslySetInnerHTML={{ __html: video.title }}></p>
+              <p className="card-title-small">{video.title}</p>
             </div>
           </div>
         ))}

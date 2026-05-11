@@ -71,9 +71,10 @@ export default function Home() {
       <header className="header-banner">
         <div className="banner-overlay"></div>
         <div className="header-content">
+          {/* LOGO OFICIAL ADICIONADA AQUI */}
           <img 
-            src="https://yt3.googleusercontent.com/nihxmU1qKISJiz-FddGHYk6VA2dEteXe7ZtwSjC1goE3byavO9HNJ-HkTW1iduHKv0Pimd6nDqA=w1060-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj" 
-            alt="Logo" 
+            src="https://i.ibb.co/jZ5x1t1g/loginho.png" 
+            alt="Logo Futebol Raiz" 
             className="header-logo" 
             onError={(e) => { e.target.style.display = 'none'; }} 
           />

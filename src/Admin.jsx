@@ -63,7 +63,7 @@ export default function Admin() {
 
   const dispararAlerta = async (e) => {
     e.preventDefault();
-    setStatusEnvio('A processar envio para a comunidade...');
+    setStatusEnvio('A processar envio para apoiar os nossos atletas...');
     
     try {
       const response = await fetch('/api/enviar-alerta', {
@@ -72,15 +72,18 @@ export default function Admin() {
         body: JSON.stringify({ titulo: tituloAlerta, mensagem: textoAlerta }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        setStatusEnvio('✅ Alerta enviado com sucesso para a nossa rede de apoio!');
+        setStatusEnvio(data.message || `✅ Alerta enviado com sucesso!`);
         setTituloAlerta('');
         setTextoAlerta('');
       } else {
-        setStatusEnvio('❌ Erro ao disparar alerta.');
+        // AQUI ESTÁ A MÁGICA: Vai mostrar o erro exato!
+        setStatusEnvio(`❌ Erro do Servidor: ${data.error}`);
       }
     } catch (error) {
-      setStatusEnvio('❌ Falha na ligação com o servidor.');
+      setStatusEnvio('❌ Falha na ligação com a Vercel.');
     }
   };
 

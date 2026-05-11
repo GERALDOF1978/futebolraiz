@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { db } from './firebase';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+// Adicionamos 'doc' para ler as configurações
+import { collection, onSnapshot, query, orderBy, doc } from 'firebase/firestore';
 import './Home.css'; 
 
 export default function Home() {
@@ -9,40 +10,44 @@ export default function Home() {
   const [busca, setBusca] = useState('');
   const [autoplay, setAutoplay] = useState(0);
   
+  // ESTADO QUE CONTROLA SE AS ESTATÍSTICAS APARECEM OU NÃO
+  const [mostrarStats, setMostrarStats] = useState(true);
+  
   const playerContainerRef = useRef(null);
 
-  // Busca os vídeos no Firebase em tempo real
   useEffect(() => {
+    // 1. Busca os vídeos
     const q = query(collection(db, "videos"), orderBy("dataCadastro", "desc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const videosData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+    const unsubscribeVideos = onSnapshot(q, (snapshot) => {
+      const videosData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setVideos(videosData);
-      
-      // Quando abre o app, já seleciona o vídeo mais recente
       if (videosData.length > 0 && !videoAtual) {
         setVideoAtual(videosData[0]);
       }
     });
-    return () => unsubscribe();
+
+    // 2. Escuta o botão liga/desliga do painel Admin
+    const unsubscribeConfig = onSnapshot(doc(db, "config", "geral"), (docSnap) => {
+      if (docSnap.exists()) {
+        // Se a chave existir no banco, atualiza o estado
+        setMostrarStats(docSnap.data().mostrarStats ?? true);
+      }
+    });
+
+    return () => { unsubscribeVideos(); unsubscribeConfig(); };
   }, [videoAtual]);
 
-  // Filtro de busca
   const videosFiltrados = videos.filter(video => 
     video.title.toLowerCase().includes(busca.toLowerCase()) || 
     (video.extraInfo && video.extraInfo.toLowerCase().includes(busca.toLowerCase()))
   );
 
-  // Função que roda ao clicar em um card de vídeo
   const tocarVideo = (video) => {
     setVideoAtual(video);
-    setAutoplay(1); // Ativa o autoplay quando o usuário clica
+    setAutoplay(1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Função para forçar a tela cheia e virar o celular
   const virarTela = async () => {
     const elemento = playerContainerRef.current;
     if (elemento) {
@@ -57,14 +62,13 @@ export default function Home() {
     }
   };
 
-  // Compartilhamento nativo do celular
   const compartilharApp = async () => {
     if (navigator.share) {
       try {
         await navigator.share({
           title: 'Futebol Raiz - FG',
           text: 'Baixe o app e assista aos melhores jogos de futebol society e base!',
-          url: window.location.origin, // Pega o link oficial do seu app na Vercel
+          url: window.location.origin, 
         });
       } catch (error) {
         console.log('Compartilhamento cancelado');
@@ -74,14 +78,12 @@ export default function Home() {
     }
   };
 
-  // Formatação de datas
   const formatarData = (dataFirebase) => {
     if (!dataFirebase) return '';
     const data = dataFirebase.toDate ? dataFirebase.toDate() : new Date(dataFirebase);
     return data.toLocaleDateString('pt-BR');
   };
 
-  // Extrai o ID do YouTube para colocar no Iframe
   const pegarIdDoVideo = (url) => {
     if (!url) return '';
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -91,7 +93,6 @@ export default function Home() {
 
   return (
     <div className="app-container">
-      {/* CABEÇALHO COM LOGO OFICIAL */}
       <header className="header-banner">
         <div className="banner-overlay"></div>
         <div className="header-content">
@@ -108,11 +109,8 @@ export default function Home() {
         <>
           <div className="player-section" ref={playerContainerRef}>
             <div className="player-wrapper">
-              {/* ESCUDOS PARA BLOQUEAR O CLIQUE E NÃO SAIR DO APP */}
               <div className="escudo-topo"></div>
               <div className="escudo-rodape"></div>
-
-              {/* PLAYER OFICIAL DO YOUTUBE (IFRAME) */}
               <iframe 
                 className="react-player"
                 src={`https://www.youtube.com/embed/${videoAtual.videoId || pegarIdDoVideo(videoAtual.url)}?autoplay=${autoplay}&modestbranding=1&rel=0&fs=0`}
@@ -123,22 +121,24 @@ export default function Home() {
                 allowFullScreen
               ></iframe>
             </div>
-            {/* BOTÃO TELA CHEIA */}
             <button className="btn-virar-tela" onClick={virarTela}>⛶</button>
           </div>
           
-          {/* TÍTULO, ESTATÍSTICAS E DESCRIÇÃO */}
           <div className="video-info">
             <h2>{videoAtual.title}</h2>
-            <div className="status-bar">
-               <span>👁️ {videoAtual.views || 0} visualizações</span>
-               <span>👍 {videoAtual.likes || 0} curtidas</span>
-               <span>🏟️ Local: {videoAtual.local || 'Não informado'}</span>
-            </div>
+            
+            {/* AQUI ESTÁ A MÁGICA: Só renderiza essa barra se o Admin deixar! */}
+            {mostrarStats && (
+              <div className="status-bar">
+                 <span>👁️ {videoAtual.views || 0} visualizações</span>
+                 <span>👍 {videoAtual.likes || 0} curtidas</span>
+                 <span>🏟️ Local: {videoAtual.local || 'Não informado'}</span>
+              </div>
+            )}
+
             <p className="admin-info">{videoAtual.extraInfo}</p>
           </div>
 
-          {/* BOTÕES DE AÇÃO (PWA E INTEGRAÇÃO YOUTUBE) */}
           <div className="action-buttons">
             <button className="btn-action" onClick={compartilharApp}>
               📤 Compartilhar App
@@ -163,7 +163,6 @@ export default function Home() {
         <div style={{ padding: '20px', textAlign: 'center' }}><p>Carregando vídeos...</p></div>
       )}
 
-      {/* BUSCA */}
       <div className="search-container">
         <input 
           type="text" 
@@ -174,7 +173,6 @@ export default function Home() {
         />
       </div>
 
-      {/* LISTA DE VÍDEOS (CARROSSEL) */}
       <h3 className="secao-titulo">Últimos Vídeos</h3>
       <div className="video-scroll-container">
         {videosFiltrados.map((video) => (

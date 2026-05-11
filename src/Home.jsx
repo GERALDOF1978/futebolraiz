@@ -1,10 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { db, messaging } from './firebase';
 import { collection, onSnapshot, query, orderBy, doc, setDoc } from 'firebase/firestore';
-import { getToken, onMessage } from 'firebase/messaging'; // <-- Adicionamos o onMessage aqui
+import { getToken, onMessage } from 'firebase/messaging';
 import './Home.css'; 
-
-
 
 export default function Home() {
   const [videos, setVideos] = useState([]);
@@ -18,6 +16,7 @@ export default function Home() {
   const playerContainerRef = useRef(null);
 
   useEffect(() => {
+    // 1. Carrega os vídeos
     const q = query(collection(db, "videos"), orderBy("dataCadastro", "desc"));
     const unsubscribeVideos = onSnapshot(q, (snapshot) => {
       const videosData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -29,12 +28,14 @@ export default function Home() {
       }
     });
 
+    // 2. Carrega configuração geral
     const unsubscribeConfig = onSnapshot(doc(db, "config", "geral"), (docSnap) => {
       if (docSnap.exists()) {
         setMostrarStats(docSnap.data().mostrarStats ?? true);
       }
     });
 
+    // 3. Carrega o Splash Screen
     const unsubSplash = onSnapshot(doc(db, "config", "splash"), (docSnap) => {
       if (docSnap.exists()) {
         const dados = docSnap.data();
@@ -48,9 +49,21 @@ export default function Home() {
       }
     });
 
-    return () => { unsubscribeVideos(); unsubscribeConfig(); unsubSplash(); };
+    // 4. NOVO: Escuta as mensagens com o App aberto na tela!
+    const unsubscribeMensagens = onMessage(messaging, (payload) => {
+      console.log('Mensagem recebida com app aberto:', payload);
+      alert(`📢 NOVO ALERTA:\n\n${payload.notification.title}\n${payload.notification.body}`);
+    });
+
+    return () => { 
+      unsubscribeVideos(); 
+      unsubscribeConfig(); 
+      unsubSplash(); 
+      unsubscribeMensagens(); 
+    };
   }, [videoAtual, splashImg]);
 
+  // Função para ativar os alertas e salvar no banco
   const pedirPermissaoNotificacao = async () => {
     try {
       const permission = await Notification.requestPermission();
@@ -60,10 +73,10 @@ export default function Home() {
         });
         if (token) {
           await setDoc(doc(db, 'tokens', token), { token: token, data: new Date() });
-          alert('🔔 Uhuu! Você ativou os alertas. Obrigado por apoiar o Futebol Raiz!');
+          alert('🔔 Uhuu! Você ativou os alertas. Obrigado por apoiar o projeto!');
         }
       } else {
-        alert('Você bloqueou os alertas. Ative no cadeado do navegador para não perder os jogos!');
+        alert('Você bloqueou os alertas. Ative no cadeado do navegador para não perder nenhum jogo!');
       }
     } catch (error) {
       console.error('Erro ao ativar notificações:', error);
@@ -102,7 +115,7 @@ export default function Home() {
       try {
         await navigator.share({
           title: 'Futebol Raiz - FG',
-          text: 'Venha apoiar nossos atletas! Assista aos melhores jogos de futebol society e base!',
+          text: 'Venha apoiar os nossos atletas do Sub-12! Assista aos melhores jogos aqui.',
           url: window.location.origin, 
         });
       } catch (error) {}
@@ -124,6 +137,7 @@ export default function Home() {
 
   return (
     <div className="app-container">
+      {/* Tela de Anúncio Splash */}
       {mostrarSplash && (
         <div 
           onClick={() => setMostrarSplash(false)}
@@ -133,6 +147,7 @@ export default function Home() {
         </div>
       )}
 
+      {/* Cabeçalho */}
       <header className="header-banner">
         <div className="banner-overlay"></div>
         <div className="header-content">
@@ -185,6 +200,7 @@ export default function Home() {
         <div style={{ padding: '20px', textAlign: 'center' }}><p>A carregar vídeos...</p></div>
       )}
 
+      {/* Busca e Lista de Vídeos */}
       <div className="search-container">
         <input type="text" placeholder="Procurar vídeos..." value={busca} onChange={(e) => setBusca(e.target.value)} className="search-input" />
       </div>
@@ -218,6 +234,7 @@ export default function Home() {
         ))}
       </div>
 
+      {/* Rodapé Comercial */}
       <footer className="app-footer">
         <div className="footer-content">
           <div className="footer-section">

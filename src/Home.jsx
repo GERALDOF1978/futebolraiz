@@ -8,6 +8,10 @@ export default function Home() {
   const [videos, setVideos] = useState([]);
   const [videoAtual, setVideoAtual] = useState(null);
   const [busca, setBusca] = useState('');
+  
+  // AQUI ESTÁ A VARIÁVEL QUE ESTAVA FALTANDO 👇
+  const [tocando, setTocando] = useState(false); 
+  
   const playerContainerRef = useRef(null);
 
   useEffect(() => {
@@ -30,8 +34,10 @@ export default function Home() {
     (video.extraInfo && video.extraInfo.toLowerCase().includes(busca.toLowerCase()))
   );
 
+  // Função que roda ao clicar num card
   const tocarVideo = (video) => {
     setVideoAtual(video);
+    setTocando(true); // Manda dar o play na hora
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -49,57 +55,46 @@ export default function Home() {
     }
   };
 
-  // Função para formatar a data que vem do Firebase
   const formatarData = (dataFirebase) => {
     if (!dataFirebase) return '';
-    // Converte o Timestamp do Firebase para Data do JavaScript
     const data = dataFirebase.toDate ? dataFirebase.toDate() : new Date(dataFirebase);
     return data.toLocaleDateString('pt-BR');
   };
 
   return (
     <div className="app-container">
-      {/* CABEÇALHO COM BANNER E LOGO */}
       <header className="header-banner">
         <div className="banner-overlay"></div>
         <div className="header-content">
-          {/* COLE O LINK DO SEU LOGO DENTRO DO src ABAIXO */}
           <img 
             src="COLE_O_LINK_DO_LOGO_AQUI" 
             alt="Logo" 
             className="header-logo" 
-            onError={(e) => { e.target.style.display = 'none'; }} // Esconde se estiver vazio
+            onError={(e) => { e.target.style.display = 'none'; }} 
           />
-          
+          <h1 className="canal-nome">Futebol Raiz - FG</h1>
         </div>
       </header>
 
       {videoAtual ? (
-
         <>
-          
-        <div className="player-section" ref={playerContainerRef}>
+          <div className="player-section" ref={playerContainerRef}>
             <div className="player-wrapper">
-
               <ReactPlayer 
-  url={videoAtual.url} 
-  playing={tocando} 
-  muted={true}        /* A CHAVE DO SUCESSO: Começa mudo para o navegador liberar o play */
-  controls={true} 
-  width="100%" 
-  height="100%" 
-  className="react-player"
-  playsinline={true}
-  onPlay={() => setTocando(true)}
-  onPause={() => setTocando(false)}
-/>
+                url={videoAtual.url} 
+                playing={tocando}       // Usa a variável
+                muted={true}            // Começa mudo para não ser bloqueado pelo celular
+                controls={true} 
+                width="100%" 
+                height="100%" 
+                className="react-player"
+                playsinline={true}
+                onPlay={() => setTocando(true)}
+                onPause={() => setTocando(false)}
+              />
             </div>
             <button className="btn-virar-tela" onClick={virarTela}>⛶</button>
           </div>
-
-
-
-
           <div className="video-info">
             <h2>{videoAtual.title}</h2>
             <p className="admin-info">📝 {videoAtual.extraInfo}</p>
@@ -113,7 +108,6 @@ export default function Home() {
         <input type="text" placeholder="Buscar vídeos..." value={busca} onChange={(e) => setBusca(e.target.value)} className="search-input" />
       </div>
 
-      {/* LISTA DE CARDS HORIZONTAL */}
       <h3 className="secao-titulo">Últimos Vídeos</h3>
       <div className="video-scroll-container">
         {videosFiltrados.map((video) => (

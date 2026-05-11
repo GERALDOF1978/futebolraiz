@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { db } from './firebase';
+import { db, messaging } from './firebase'; // <-- messaging importado aqui
 import { collection, onSnapshot, query, orderBy, doc } from 'firebase/firestore';
+import { getToken } from 'firebase/messaging'; // <-- getToken importado aqui
 import './Home.css'; 
-import { messaging } from './firebase';
-import { getToken } from 'firebase/messaging';
 
 export default function Home() {
   const [videos, setVideos] = useState([]);
@@ -47,7 +46,13 @@ export default function Home() {
       }
     });
 
-const pedirPermissaoNotificacao = async () => {
+    return () => { unsubscribeVideos(); unsubscribeConfig(); unsubSplash(); };
+  }, [videoAtual, splashImg]);
+
+  // ==========================================
+  // FUNÇÃO DE NOTIFICAÇÃO PUSH (Faltava isso!)
+  // ==========================================
+  const pedirPermissaoNotificacao = async () => {
     try {
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
@@ -55,21 +60,16 @@ const pedirPermissaoNotificacao = async () => {
           vapidKey: 'BKQttoVmCcyQH5J4wKalKmTTBde-Hi3HD2Dmi4wgczitfNSu58kJ6tBWC96WI7PiouYIgwTOa_vTFzQspe9vBu8' 
         });
         if (token) {
-          alert('🔔 Uhuu! Você ativou as notificações com sucesso. Agora você não perde nenhum lance!');
+          alert('🔔 Uhuu! Você ativou os alertas com sucesso. Agora você não perde nenhum lance!');
         }
       } else {
-        alert('Você bloqueou as notificações. Ative no cadeado do navegador para não perder os jogos!');
+        alert('Você bloqueou os alertas. Ative no cadeado do navegador para ser avisado dos jogos!');
       }
     } catch (error) {
       console.error('Erro ao ativar notificações:', error);
-      alert('Ops! As notificações não são suportadas neste navegador/dispositivo ainda.');
+      alert('Ops! Os alertas não são suportados neste navegador/dispositivo ainda.');
     }
   };
-
-
-
-    return () => { unsubscribeVideos(); unsubscribeConfig(); unsubSplash(); };
-  }, [videoAtual, splashImg]);
 
   const videosFiltrados = videos.filter(video => 
     !video.oculto && 
@@ -146,7 +146,6 @@ const pedirPermissaoNotificacao = async () => {
 
       {videoAtual ? (
         <>
-          {/* O NOVO TÍTULO PEQUENO AQUI (EM CIMA DO PLAYER) */}
           <div className="titulo-topo-player">
             <span>{videoAtual.title}</span>
           </div>
@@ -228,20 +227,16 @@ const pedirPermissaoNotificacao = async () => {
             </div>
             <div className="card-info">
               <span className="video-date">{formatarData(video.dataCadastro)}</span>
-              {/* Título simplificado na lista para evitar erros de tradutor */}
               <p className="card-title-small">{video.title}</p>
             </div>
           </div>
         ))}
       </div>
 
-     {/* ========================================== */}
-      {/* RODAPÉ PREMIUM (VENDAS E PATROCÍNIOS) */}
-      {/* ========================================== */}
+      {/* RODAPÉ PREMIUM */}
       <footer className="app-footer">
         <div className="footer-content">
           
-          {/* 1. Venda para Campeonatos (Transmissão) */}
           <div className="footer-section">
             <h4>🎥 Transmita seu Campeonato</h4>
             <p>Aumente a visibilidade do seu torneio com transmissões ao vivo em alta qualidade, narração e placar na tela.</p>
@@ -253,7 +248,6 @@ const pedirPermissaoNotificacao = async () => {
             </a>
           </div>
 
-          {/* 2. Venda para Marcas (Patrocínios no App e Vídeo) */}
           <div className="footer-section sponsor-section">
             <h4>🚀 Divulgue sua Marca</h4>
             <p>Apareça para milhares de apaixonados por futebol! Anuncie na tela de abertura do App ou durante nossas transmissões ao vivo.</p>
@@ -265,7 +259,6 @@ const pedirPermissaoNotificacao = async () => {
             </a>
           </div>
           
-          {/* 3. Desenvolvedor (Seu portfólio) */}
           <div className="footer-section dev-contact">
             <h4>💻 Desenvolvedor</h4>
             <span className="dev-name">Geraldo Filho</span>

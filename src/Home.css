@@ -1,533 +1,392 @@
-* { box-sizing: border-box; margin: 0; padding: 0; }
+
+
 
 /* =========================================
-   FUNDO DA TELA INTEIRA (Com película escura)
+   MELHORIAS PREMIUM GERAIS
    ========================================= */
-.app-container {
-  /* Mistura a cor escura com a sua imagem de fundo para dar leitura */
-  background-image: linear-gradient(to bottom, rgba(15, 15, 15, 0.85), rgba(0, 0, 0, 0.95)), url('https://i.ibb.co/s9bkkG9h/logo-tela-inteira.png');
-  background-size: cover;
-  background-attachment: fixed; /* O fundo fica parado enquanto a tela rola */
-  background-position: center;
-  color: #ffffff; 
-  min-height: 100vh;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  padding-bottom: 30px;
-}
 
-/* =========================================
-   BANNER DO CABEÇALHO
-   ========================================= */
-.header-banner {
-  position: relative; 
-  width: 100%; 
-  height: 140px; 
-  /* SEU BANNER OFICIAL AQUI */
-  background-image: url('https://i.ibb.co/vvzQKKdS/logo.png'); 
-  background-size: cover; 
-  background-position: center;
-  display: flex; 
-  align-items: flex-end; 
-  padding: 15px 20px;
-}
-
-.banner-overlay {
-  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.1) 100%);
-}
-
-.header-content { position: relative; z-index: 2; display: flex; align-items: center; }
-
-.header-logo {
-  width: 55px; height: 55px; border-radius: 50%; border: 2px solid #e62117;
-  object-fit: cover; background-color: #333;
-}
-
-/* =========================================
-   PLAYER ARREDONDADO
-   ========================================= */
-.player-section { 
-  position: relative; 
-  width: 100%; 
-  padding: 10px 15px; /* Descola o player da borda da tela */
-}
-
-.player-wrapper { 
-  position: relative; 
-  padding-top: 56.25%; 
-  border-radius: 16px; /* CANTOS ARREDONDADOS */
-  overflow: hidden; /* Corta o vídeo para seguir o arredondamento */
-  box-shadow: 0 8px 20px rgba(0,0,0,0.8);
+/* Suaviza tudo */
+body {
   background: #000;
+  overflow-x: hidden;
 }
 
-.react-player { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+/* Fundo mais premium */
+.app-container {
+  background-image:
+    linear-gradient(
+      to bottom,
+      rgba(0,0,0,0.92),
+      rgba(0,0,0,0.96)
+    ),
+    url('https://i.ibb.co/s9bkkG9h/logo-tela-inteira.png');
+
+  backdrop-filter: blur(3px);
+}
+
+/* =========================================
+   HEADER MAIS PREMIUM
+   ========================================= */
+
+.header-banner {
+  height: 170px;
+  border-bottom-left-radius: 25px;
+  border-bottom-right-radius: 25px;
+  overflow: hidden;
+
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.7);
+}
+
+.header-banner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background:
+    linear-gradient(
+      to top,
+      rgba(0,0,0,0.95),
+      rgba(0,0,0,0.15)
+    );
+}
+
+/* Logo com glow */
+.header-logo {
+  width: 70px;
+  height: 70px;
+
+  border: 3px solid #e62117;
+
+  box-shadow:
+    0 0 20px rgba(230,33,23,0.6);
+
+  background: #111;
+}
+
+/* =========================================
+   PLAYER MAIS MODERNO
+   ========================================= */
+
+.player-wrapper {
+  border-radius: 22px;
+
+  border: 1px solid rgba(255,255,255,0.08);
+
+  box-shadow:
+    0 15px 35px rgba(0,0,0,0.8),
+    0 0 20px rgba(230,33,23,0.15);
+
+  overflow: hidden;
+}
+
+/* Efeito vidro */
+.player-wrapper::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.04),
+      transparent
+    );
+
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* =========================================
+   BOTÃO FULLSCREEN
+   ========================================= */
 
 .btn-virar-tela {
-  position: absolute; top: 20px; right: 25px;
-  background-color: rgba(0, 0, 0, 0.7); color: white;
-  border: 1px solid rgba(255,255,255,0.2); padding: 8px 12px; 
-  border-radius: 6px; cursor: pointer; z-index: 10; font-size: 16px;
-}
+  border-radius: 50px;
 
-/* =========================================
-   TÍTULO E DESCRIÇÃO CHAMATIVOS
-   ========================================= */
-.video-info { padding: 10px 20px 20px; }
+  backdrop-filter: blur(10px);
 
-.video-info h2 { 
-  font-size: 22px; 
-  font-weight: 900; 
-  color: #ffffff; 
-  line-height: 1.3;
-  margin-bottom: 12px;
-  text-transform: uppercase;
-}
+  border: 1px solid rgba(255,255,255,0.15);
 
-.admin-info { 
-  font-size: 15px; 
-  color: #e0e0e0; 
-  background: rgba(255, 255, 255, 0.05); /* Fundo translúcido elegante */
-  border-left: 5px solid #e62117; /* Destaque vermelho na lateral */
-  padding: 15px; 
-  border-radius: 0 8px 8px 0; 
-  font-style: italic;
-  line-height: 1.5;
-}
-
-/* =========================================
-   BUSCA E CARROSSEL
-   ========================================= */
-.search-container { padding: 5px 20px 15px; }
-.search-input { width: 100%; padding: 14px 20px; border-radius: 25px; border: 1px solid #333; background-color: #1a1a1a; color: white; font-size: 15px; outline: none; }
-.search-input:focus { border-color: #e62117; }
-
-.secao-titulo { padding: 10px 20px 10px; font-size: 18px; color: #fff; font-weight: bold; }
-
-.video-scroll-container {
-  display: flex; overflow-x: auto; gap: 15px; padding: 10px 20px 20px;
-  scrollbar-width: none; 
-}
-.video-scroll-container::-webkit-scrollbar { display: none; }
-
-.video-card-horizontal {
-  flex: 0 0 45%; max-width: 200px; cursor: pointer; display: flex; flex-direction: column;
   transition: all 0.3s ease;
 }
 
+.btn-virar-tela:hover {
+  transform: scale(1.08);
+
+  background: rgba(230,33,23,0.8);
+}
+
 /* =========================================
-   DESTAQUE PARA O CARD QUE ESTÁ TOCANDO
+   TÍTULO PRINCIPAL
    ========================================= */
+
+.video-info h2 {
+  font-size: 26px;
+
+  line-height: 1.2;
+
+  letter-spacing: 0.5px;
+
+  text-shadow:
+    0 2px 10px rgba(0,0,0,0.8);
+}
+
+/* =========================================
+   STATUS BAR MAIS PREMIUM
+   ========================================= */
+
+.status-bar span {
+  backdrop-filter: blur(10px);
+
+  background:
+    rgba(255,255,255,0.06);
+
+  border:
+    1px solid rgba(255,255,255,0.08);
+
+  box-shadow:
+    0 4px 10px rgba(0,0,0,0.3);
+}
+
+/* =========================================
+   BUSCA MAIS MODERNA
+   ========================================= */
+
+.search-input {
+  height: 54px;
+
+  background:
+    rgba(255,255,255,0.05);
+
+  border:
+    1px solid rgba(255,255,255,0.08);
+
+  backdrop-filter: blur(12px);
+
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,0.05);
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.search-input:focus {
+  border-color: #e62117;
+
+  box-shadow:
+    0 0 15px rgba(230,33,23,0.3);
+}
+
+/* =========================================
+   CARDS ESTILO STREAMING
+   ========================================= */
+
+.video-card-horizontal {
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
+}
+
+.video-card-horizontal:hover {
+  transform:
+    scale(1.05)
+    translateY(-5px);
+}
+
+/* Thumb mais bonita */
+.thumbnail {
+  border-radius: 16px;
+
+  box-shadow:
+    0 10px 20px rgba(0,0,0,0.5);
+}
+
+/* Overlay premium */
+.play-overlay {
+  backdrop-filter: blur(3px);
+
+  background:
+    linear-gradient(
+      to top,
+      rgba(0,0,0,0.85),
+      rgba(0,0,0,0.2)
+    );
+
+  font-size: 40px;
+}
+
+/* =========================================
+   CARD ATIVO
+   ========================================= */
+
 .video-card-horizontal.active-card {
-  transform: scale(1.03); /* Fica um pouquinho maior */
+  transform:
+    scale(1.06)
+    translateY(-4px);
 }
 
 .video-card-horizontal.active-card .thumbnail {
-  border: 3px solid #e62117; /* Borda vermelha */
-  box-shadow: 0 0 15px rgba(230, 33, 23, 0.6); /* Brilho em volta */
-  border-radius: 12px;
-}
+  border: 3px solid #e62117;
 
-.video-card-horizontal.active-card .card-info h3 {
-  color: #e62117; /* Título vermelho */
-  font-weight: bold;
-}
-
-/* Restante dos cards */
-.thumb-container { position: relative; border-radius: 12px; overflow: hidden; }
-.thumbnail { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; border: 3px solid transparent; transition: all 0.3s ease; }
-.play-overlay {
-  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
-  font-size: 30px; color: white; opacity: 0; transition: opacity 0.2s;
-}
-.video-card-horizontal:hover .play-overlay { opacity: 1; }
-
-.card-info { padding: 10px 0; }
-.video-date { font-size: 12px; color: #aaa; display: block; margin-bottom: 5px; }
-.card-info h3 { font-size: 14px; font-weight: 500; color: #fff; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; transition: color 0.3s; }
-
-
-/* BARRA DE ESTATÍSTICAS (Views, Likes, Local) */
-.status-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 15px;
-  font-size: 13px;
-  color: #ccc;
-  font-weight: 500;
-}
-
-.status-bar span {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 6px 12px;
-  border-radius: 15px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-/* Opcional: Para a descrição do YouTube que é longa não perder a quebra de linha */
-.admin-info {
-  white-space: pre-wrap; 
+  box-shadow:
+    0 0 25px rgba(230,33,23,0.7);
 }
 
 /* =========================================
-   CORREÇÃO DA TELA CHEIA
+   BOTÕES PREMIUM
    ========================================= */
-.player-section:fullscreen, .player-section:-webkit-full-screen { padding: 0 !important; }
-.player-section:fullscreen .player-wrapper, .player-section:-webkit-full-screen .player-wrapper {
-  padding-top: 0 !important; height: 100vh; border-radius: 0;
-}
-.player-section:fullscreen .react-player, .player-section:-webkit-full-screen .react-player {
-  height: 100vh; width: 100vw;
-}
-.player-section:fullscreen .btn-virar-tela, .player-section:-webkit-full-screen .btn-virar-tela { z-index: 9999; }
-
-/* =========================================
-   BOTÕES DE AÇÃO (COMPARTILHAR, LIKE, INSCREVER)
-   ========================================= */
-.action-buttons {
-  display: flex;
-  gap: 10px;
-  padding: 0 20px 20px;
-  flex-wrap: wrap; /* Permite quebrar linha se a tela for muito fina */
-}
 
 .btn-action {
-  flex: 1; /* Faz os botões dividirem o espaço por igual */
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 12px 10px;
-  border-radius: 8px;
-  font-size: 13px;
-  cursor: pointer;
-  text-align: center;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  transition: all 0.2s;
-  white-space: nowrap;
+  border-radius: 14px;
+
+  backdrop-filter: blur(10px);
+
+  transition: all 0.3s ease;
+
+  box-shadow:
+    0 6px 15px rgba(0,0,0,0.35);
 }
 
 .btn-action:hover {
-  background: rgba(255, 255, 255, 0.2);
+  transform:
+    translateY(-3px);
+
+  background:
+    rgba(255,255,255,0.18);
 }
 
+/* Botão inscrever destaque */
 .btn-inscrever {
-  background: #e62117;
-  border-color: #e62117;
-}
+  background:
+    linear-gradient(
+      135deg,
+      #ff2b2b,
+      #c30000
+    );
 
-.btn-inscrever:hover {
-  background: #cc1a10;
+  box-shadow:
+    0 8px 20px rgba(230,33,23,0.4);
 }
 
 /* =========================================
-   ÁREA DO DESENVOLVEDOR (GERALDO FILHO)
+   TÍTULO COM LETREIRO MAIS MODERNO
    ========================================= */
-.dev-section h4 {
-  color: #3ea6ff; /* Um azul tech para diferenciar do vermelho do Futebol */
-}
 
-.dev-contact {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 15px;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 15px;
-  border-radius: 8px;
-  border-left: 3px solid #3ea6ff;
-}
-
-.dev-name {
-  color: #ffffff;
-  font-weight: bold;
-  font-size: 16px;
-}
-
-.dev-link {
-  color: #aaaaaa;
-  text-decoration: none;
-  font-size: 14px;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-}
-
-.dev-link:hover {
-  color: #3ea6ff;
-  transform: translateX(5px); /* Dá um efeitinho de pular pra direita ao passar o mouse */
-}
-/* =========================================
-   RODAPÉ PREMIUM CORRIGIDO
-   ========================================= */
-.app-footer {
-  background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
-  border-top: 4px solid #e62117;
-  padding: 50px 25px 30px;
-  margin-top: 50px;
-  color: #fff;
-}
-
-.footer-content {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 40px;
-  max-width: 1100px;
-  margin: 0 auto;
-}
-
-.footer-section h4 {
-  font-size: 1.1rem;
-  color: #e62117;
-  margin-bottom: 20px;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  border-bottom: 1px solid #333;
-  padding-bottom: 10px;
-}
-
-.footer-section p {
-  font-size: 14px;
-  line-height: 1.6;
-  color: #bbb;
-  margin-bottom: 20px;
-}
-
-/* Botão Zap do Flávio */
-.btn-whatsapp {
-  display: inline-flex;
-  align-items: center;
-  background: #25D366;
-  padding: 12px 20px;
-  border-radius: 50px;
-  font-weight: bold;
-  color: white;
-  text-decoration: none;
-  transition: transform 0.2s;
-}
-
-.btn-whatsapp:hover { transform: scale(1.05); }
-
-/* Seção do Desenvolvedor - Geraldo Filho */
-.dev-contact {
-  background: rgba(255, 255, 255, 0.03);
-  padding: 20px;
-  border-radius: 12px;
-  border: 1px solid #222;
-}
-
-.dev-name {
-  display: block;
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: #3ea6ff; /* Azul Tech */
-  margin-bottom: 10px;
-}
-
-.dev-link {
-  display: block;
-  color: #ddd;
-  text-decoration: none;
-  font-size: 13px;
-  margin-bottom: 8px;
-}
-
-.dev-link:hover { color: #3ea6ff; }
-
-.footer-bottom {
-  text-align: center;
-  margin-top: 50px;
-  padding-top: 20px;
-  border-top: 1px solid #1a1a1a;
-  font-size: 11px;
-  color: #555;
-}
-/* =========================================
-   CARD DO TÍTULO DO VÍDEO (NOVO VISUAL BRANCO)
-   ========================================= */
 .titulo-topo-player {
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto 10px auto;
-  padding: 12px 18px;
-  background-color: #ffffff; /* Fundo Branco */
-  border-left: 6px solid #e62117; /* Tarja Vermelha do YouTube */
-  border-radius: 8px; /* Cantos arredondados */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); /* Sombra para destacar do fundo preto */
-  box-sizing: border-box;
-}
+  border-radius: 14px;
 
-.titulo-topo-player span {
-  color: #0f0f0f; /* Fonte preta */
-  font-size: 15px;
-  font-weight: 900; /* Bem chamativo */
-  text-transform: uppercase;
-  line-height: 1.4; /* Espaçamento entre as linhas */
-  display: block;
-  white-space: normal; /* PERMITE A QUEBRA DE LINHA */
-  word-wrap: break-word;
-}
+  border:
+    1px solid rgba(255,255,255,0.08);
 
-/* =========================================
-   BOTÕES DE VENDAS E PATROCÍNIO (RODAPÉ)
-   ========================================= */
-.btn-whatsapp {
-  display: inline-block;
-  background: #25D366; /* Verde WhatsApp */
-  color: #fff;
-  padding: 12px 20px;
-  border-radius: 8px; /* Quadrado com cantos arredondados fica mais formal */
-  text-decoration: none;
-  font-weight: 800;
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
-  transition: all 0.3s ease;
-  margin-top: 10px;
-}
-
-.btn-whatsapp:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5);
-}
-
-/* Botão Dourado para Vender Patrocínio */
-.btn-sponsor {
-  background: #ffcc00; /* Dourado premium */
-  color: #000;
-  box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3);
-}
-
-.btn-sponsor:hover {
-  background: #ffd633;
-  box-shadow: 0 6px 20px rgba(255, 204, 0, 0.5);
-}
-
-.sponsor-section h4 {
-  color: #ffcc00; /* Título combina com o botão */
-}
-
-/* =========================================
-   FORÇAR ESTILO DO RODAPÉ PREMIUM
-   ========================================= */
-.app-footer a {
-  text-decoration: none !important;
-}
-
-.btn-whatsapp {
-  display: inline-block !important;
-  background-color: #25D366 !important;
-  color: #ffffff !important;
-  padding: 12px 24px !important;
-  border-radius: 8px !important;
-  font-weight: bold !important;
-  margin-top: 10px !important;
-}
-
-.btn-sponsor {
-  background-color: #ffcc00 !important;
-  color: #000000 !important;
-}
-
-.dev-contact {
-  background: rgba(255, 255, 255, 0.05);
-  padding: 15px;
-  border-radius: 8px;
-  border-left: 3px solid #3ea6ff;
-}
-
-.dev-link {
-  color: #aaaaaa !important;
-  display: block;
-  margin-top: 8px;
-}
-
-/* =========================================
-   LETREIRO DIGITAL (MARQUEE) NO TÍTULO
-   ========================================= */
-.titulo-topo-player {
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto 10px auto;
-  padding: 10px 0; /* Padding lateral zero para o texto correr de ponta a ponta */
-  background-color: #ffffff;
-  border-left: 6px solid #e62117;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-  box-sizing: border-box;
-  overflow: hidden; /* Esconde o texto que sai da caixa */
-  position: relative;
-}
-
-.marquee-container {
-  width: 100%;
-  white-space: nowrap; /* Impede a quebra de linha */
-  overflow: hidden;
+  background:
+    linear-gradient(
+      135deg,
+      #ffffff,
+      #f5f5f5
+    );
 }
 
 .marquee-container span {
-  display: inline-block;
-  color: #0f0f0f;
-  font-size: 15px;
-  font-weight: 900;
-  text-transform: uppercase;
-  padding-left: 100%; /* Começa totalmente encostado à direita */
-  animation: marquee-scroll 15s linear infinite; /* 15s é a velocidade do deslize */
+  letter-spacing: 1px;
 }
-
-/* Animação que faz o texto correr da direita para a esquerda */
-@keyframes marquee-scroll {
-  0%   { transform: translate(0, 0); }
-  100% { transform: translate(-100%, 0); }
-}
-
 
 /* =========================================
-   DESCRIÇÃO COM BOTÃO "VER MAIS"
+   DESCRIÇÃO PREMIUM
    ========================================= */
+
 .descricao-container {
-  margin-top: 10px;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 10px;
-  border-radius: 6px;
+  background:
+    rgba(255,255,255,0.04);
+
+  border:
+    1px solid rgba(255,255,255,0.05);
+
+  backdrop-filter: blur(10px);
+
+  border-radius: 14px;
 }
 
-.admin-info {
-  font-size: 13px;
-  color: #ddd;
-  line-height: 1.5;
-  margin: 0;
-  transition: all 0.3s ease;
-}
+/* =========================================
+   FOOTER PREMIUM
+   ========================================= */
 
-.admin-info.truncado {
-  display: -webkit-box;
-  -webkit-line-clamp: 2; /* Mostra apenas 2 linhas */
-  -webkit-box-orient: vertical;
+.app-footer {
+  position: relative;
+
   overflow: hidden;
 }
 
-.admin-info.expandido {
-  display: block; /* Mostra o texto todo */
+/* Glow vermelho no topo */
+.app-footer::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 2px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      #e62117,
+      transparent
+    );
+
+  box-shadow:
+    0 0 20px rgba(230,33,23,0.8);
 }
 
-.btn-ver-mais {
-  background: none;
-  border: none;
-  color: #e62117; /* Vermelho do Futebol Raiz */
-  font-weight: bold;
-  font-size: 13px;
-  cursor: pointer;
-  padding: 5px 0 0 0;
-  text-transform: uppercase;
+/* =========================================
+   RESPONSIVIDADE MOBILE
+   ========================================= */
+
+@media (max-width: 768px) {
+
+  .header-banner {
+    height: 150px;
+  }
+
+  .video-info h2 {
+    font-size: 21px;
+  }
+
+  .video-card-horizontal {
+    flex: 0 0 70%;
+  }
+
+  .btn-action {
+    font-size: 12px;
+    padding: 11px 8px;
+  }
+
+  .status-bar {
+    gap: 8px;
+  }
+
+  .status-bar span {
+    font-size: 11px;
+  }
 }
 
-.btn-ver-mais:hover {
-  text-decoration: underline;
+/* =========================================
+   ANIMAÇÃO SUAVE GLOBAL
+   ========================================= */
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a,
+input,
+video,
+.thumbnail {
+  transition:
+    all 0.25s ease;
 }

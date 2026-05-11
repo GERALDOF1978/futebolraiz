@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import ReactPlayer from 'react-player';
+import ReactPlayer from 'react-player/lazy';
 import { db } from './firebase';
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import './Home.css'; 
@@ -76,12 +76,24 @@ export default function Home() {
 
       {videoAtual ? (
         <>
-          <div className="player-section" ref={playerContainerRef}>
+          
+        <div className="player-section" ref={playerContainerRef}>
             <div className="player-wrapper">
-              <ReactPlayer url={videoAtual.url} playing={true} controls={true} width="100%" height="100%" className="react-player" />
+              <ReactPlayer 
+                url={videoAtual.url} 
+                playing={true} // Tenta tocar
+                muted={true}   // ADICIONE ISTO: browsers móveis exigem mudo para autoplay
+                controls={true} 
+                width="100%" 
+                height="100%" 
+                className="react-player"
+                playsinline={true} // IMPORTANTE: para tocar dentro do app no iPhone
+              />
             </div>
             <button className="btn-virar-tela" onClick={virarTela}>⛶</button>
           </div>
+
+
           <div className="video-info">
             <h2>{videoAtual.title}</h2>
             <p className="admin-info">📝 {videoAtual.extraInfo}</p>

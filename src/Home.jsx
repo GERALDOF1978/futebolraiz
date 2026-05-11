@@ -224,28 +224,39 @@ export default function Home() {
         />
       </div>
 
-      <h3 className="secao-titulo">Últimos Vídeos</h3>
-      <div className="video-scroll-container">
-        {videosFiltrados.map((video) => (
-          <div 
-            key={video.id} 
-            className={`video-card-horizontal ${videoAtual?.id === video.id ? 'active-card' : ''}`} 
-            onClick={() => tocarVideo(video)}
-          >
-            <div className="thumb-container">
-              <img src={video.thumb} alt={video.title} className="thumbnail" />
-              <div className="play-overlay">▶</div>
-            </div>
-            <div className="card-info">
-              <span className="video-date">{formatarData(video.dataCadastro)}</span>
-              <h3>{video.title}</h3>
-            </div>
-          </div>
-        ))}
-        {videosFiltrados.length === 0 && videos.length > 0 && (
-          <p className="no-results">Nenhum vídeo encontrado para essa busca.</p>
-        )}
+      {/* LISTA DE VÍDEOS (CARROSSEL) */}
+<h3 className="secao-titulo">Últimos Vídeos</h3>
+<div className="video-scroll-container">
+  {videosFiltrados.map((video) => (
+    <div 
+      key={video.id} 
+      className={`video-card-horizontal ${videoAtual?.id === video.id ? 'active-card' : ''}`} 
+      onClick={() => tocarVideo(video)}
+    >
+      <div className="thumb-container">
+        <img 
+          src={video.thumb} 
+          alt={video.title} 
+          className="thumbnail" 
+          /* MÁGICA AQUI: Se a imagem der erro 404, ele troca para a versão padrão na hora */
+          onError={(e) => {
+            if (!e.target.src.includes('hqdefault.jpg')) {
+              e.target.src = `https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`;
+            }
+          }}
+        />
+        <div className="play-overlay">▶</div>
       </div>
+      <div className="card-info">
+        <span className="video-date">{formatarData(video.dataCadastro)}</span>
+        <h3>{video.title}</h3>
+      </div>
+    </div>
+  ))}
+  {videosFiltrados.length === 0 && videos.length > 0 && (
+    <p className="no-results">Nenhum vídeo encontrado para essa busca.</p>
+  )}
+</div>
 
       {/* ========================================== */}
       {/* RODAPÉ PROFISSIONAL (VENDA, LINKS E DEV) */}

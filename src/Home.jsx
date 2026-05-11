@@ -70,7 +70,7 @@ export default function Home() {
             className="header-logo" 
             onError={(e) => { e.target.style.display = 'none'; }} // Esconde se estiver vazio
           />
-          <h1 className="canal-nome">Futebol Raiz - FG</h1>
+          
         </div>
       </header>
 

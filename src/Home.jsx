@@ -123,6 +123,11 @@ export default function Home() {
 
       {videoAtual ? (
         <>
+          {/* O NOVO TÍTULO PEQUENO AQUI (EM CIMA DO PLAYER) */}
+          <div className="titulo-topo-player">
+            <span>{videoAtual.title}</span>
+          </div>
+
           <div className="player-section" ref={playerContainerRef}>
             <div className="player-wrapper">
               <div className="escudo-topo"></div>
@@ -141,16 +146,14 @@ export default function Home() {
           </div>
           
           <div className="video-info">
-            {/* RESOLUÇÃO DO ERRO: Envolver texto em span impede quebras de tradução */}
-            <h2 dangerouslySetInnerHTML={{ __html: videoAtual.title }}></h2>
             {mostrarStats && (
               <div className="status-bar">
-                 <span>👁️ {videoAtual.views || 0}</span>
-                 <span>👍 {videoAtual.likes || 0}</span>
-                 <span>🏟️ {videoAtual.local || 'Local N/I'}</span>
+                 <span>👁️ {videoAtual.views || 0} visualizações</span>
+                 <span>👍 {videoAtual.likes || 0} curtidas</span>
+                 <span>🏟️ Local: {videoAtual.local || 'Não informado'}</span>
               </div>
             )}
-            <p className="admin-info" dangerouslySetInnerHTML={{ __html: videoAtual.extraInfo }}></p>
+            <p className="admin-info">{videoAtual.extraInfo}</p>
           </div>
 
           <div className="action-buttons">
@@ -190,8 +193,8 @@ export default function Home() {
             </div>
             <div className="card-info">
               <span className="video-date">{formatarData(video.dataCadastro)}</span>
-              {/* RESOLUÇÃO DO ERRO AQUI TAMBÉM */}
-              <h3 dangerouslySetInnerHTML={{ __html: video.title }}></h3>
+              {/* Título simplificado na lista para evitar erros de tradutor */}
+              <p className="card-title-small">{video.title}</p>
             </div>
           </div>
         ))}

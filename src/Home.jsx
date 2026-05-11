@@ -7,8 +7,6 @@ export default function Home() {
   const [videos, setVideos] = useState([]);
   const [videoAtual, setVideoAtual] = useState(null);
   const [busca, setBusca] = useState('');
-  
-  // CRIAMOS O ESTADO DE AUTOPLAY AQUI (Começa desligado: 0)
   const [autoplay, setAutoplay] = useState(0);
   
   const playerContainerRef = useRef(null);
@@ -36,7 +34,7 @@ export default function Home() {
 
   const tocarVideo = (video) => {
     setVideoAtual(video);
-    setAutoplay(1); // LIGA O AUTOPLAY QUANDO CLICA NO CARD!
+    setAutoplay(1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -86,16 +84,22 @@ export default function Home() {
         <>
           <div className="player-section" ref={playerContainerRef}>
             <div className="player-wrapper">
-              {/* VEJA O FINAL DO src: Adicionamos o ?autoplay= */}
+              
+              {/* NOSSOS ESCUDOS INVISÍVEIS PARA BLOQUEAR CLIQUES INDESEJADOS */}
+              <div className="escudo-topo"></div>
+              <div className="escudo-rodape"></div>
+
+              {/* Parâmetros adicionados: modestbranding=1 (remove logo YT) e fs=0 (remove botão fullscreen do YT) */}
               <iframe 
                 className="react-player"
-                src={`https://www.youtube.com/embed/${videoAtual.videoId || pegarIdDoVideo(videoAtual.url)}?autoplay=${autoplay}`}
+                src={`https://www.youtube.com/embed/${videoAtual.videoId || pegarIdDoVideo(videoAtual.url)}?autoplay=${autoplay}&modestbranding=1&rel=0&fs=0`}
                 title={videoAtual.title}
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               ></iframe>
             </div>
+            {/* NOSSO BOTÃO PERSONALIZADO DE TELA CHEIA */}
             <button className="btn-virar-tela" onClick={virarTela}>⛶</button>
           </div>
           <div className="video-info">

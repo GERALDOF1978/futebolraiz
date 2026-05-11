@@ -260,7 +260,7 @@ export default function Admin() {
       <div style={{ background: '#1a1a1a', border: '1px solid #333', padding: '20px', borderRadius: '10px', marginTop: '20px' }}>
         <h3 style={{ color: '#00ff88' }}>🚀 Anúncio de Abertura (Splash Screen)</h3>
         <p style={{ fontSize: '14px', color: '#aaa', marginBottom: '15px' }}>
-          Faça upload de uma imagem patrocinada e defina até quando ela deve aparecer na abertura do app.
+          Faça upload de uma imagem patrocinada e defina até quando ela deve aparecer na abertura do app. (1080 x 1920 px  9:16 (vertical))
         </p>
         <form onSubmit={salvarSplash} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <input type="file" accept="image/*" onChange={(e) => setSplashImagem(e.target.files[0])} style={inputStyle} required />

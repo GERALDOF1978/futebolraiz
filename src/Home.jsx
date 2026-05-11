@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import ReactPlayer from 'react-player';
 import { db } from './firebase';
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import './Home.css'; 
@@ -20,7 +19,6 @@ export default function Home() {
       }));
       setVideos(videosData);
       
-      // Carrega o primeiro vídeo da lista logo que abre a app
       if (videosData.length > 0 && !videoAtual) {
         setVideoAtual(videosData[0]);
       }
@@ -33,9 +31,7 @@ export default function Home() {
     (video.extraInfo && video.extraInfo.toLowerCase().includes(busca.toLowerCase()))
   );
 
-  // Função simples: apenas troca o vídeo e sobe o ecrã
   const tocarVideo = (video) => {
-    console.log("A carregar vídeo:", video.url); // Para podermos ver no F12 se o link está correto
     setVideoAtual(video);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -60,6 +56,14 @@ export default function Home() {
     return data.toLocaleDateString('pt-BR');
   };
 
+  // Função de segurança: Pega o ID exato do vídeo para o Iframe oficial
+  const pegarIdDoVideo = (url) => {
+    if (!url) return '';
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : '';
+  };
+
   return (
     <div className="app-container">
       <header className="header-banner">
@@ -79,15 +83,15 @@ export default function Home() {
         <>
           <div className="player-section" ref={playerContainerRef}>
             <div className="player-wrapper">
-              {/* PLAYER LIMPO E ESTÁVEL */}
-              <ReactPlayer 
-                url={videoAtual.url} 
-                controls={true} 
-                width="100%" 
-                height="100%" 
+              {/* IFRAME OFICIAL DO YOUTUBE (Sem bibliotecas de terceiros) */}
+              <iframe 
                 className="react-player"
-                playsinline={true}
-              />
+                src={`https://www.youtube.com/embed/${videoAtual.videoId || pegarIdDoVideo(videoAtual.url)}`}
+                title={videoAtual.title}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
             </div>
             <button className="btn-virar-tela" onClick={virarTela}>⛶</button>
           </div>

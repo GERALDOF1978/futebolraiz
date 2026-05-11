@@ -9,9 +9,6 @@ export default function Home() {
   const [videoAtual, setVideoAtual] = useState(null);
   const [busca, setBusca] = useState('');
   
-  // AQUI ESTÁ A VARIÁVEL QUE ESTAVA FALTANDO 👇
-  const [tocando, setTocando] = useState(false); 
-  
   const playerContainerRef = useRef(null);
 
   useEffect(() => {
@@ -22,6 +19,8 @@ export default function Home() {
         ...doc.data()
       }));
       setVideos(videosData);
+      
+      // Carrega o primeiro vídeo da lista logo que abre a app
       if (videosData.length > 0 && !videoAtual) {
         setVideoAtual(videosData[0]);
       }
@@ -34,10 +33,10 @@ export default function Home() {
     (video.extraInfo && video.extraInfo.toLowerCase().includes(busca.toLowerCase()))
   );
 
-  // Função que roda ao clicar num card
+  // Função simples: apenas troca o vídeo e sobe o ecrã
   const tocarVideo = (video) => {
+    console.log("A carregar vídeo:", video.url); // Para podermos ver no F12 se o link está correto
     setVideoAtual(video);
-    setTocando(true); // Manda dar o play na hora
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -80,17 +79,14 @@ export default function Home() {
         <>
           <div className="player-section" ref={playerContainerRef}>
             <div className="player-wrapper">
+              {/* PLAYER LIMPO E ESTÁVEL */}
               <ReactPlayer 
                 url={videoAtual.url} 
-                playing={tocando}       // Usa a variável
-                muted={true}            // Começa mudo para não ser bloqueado pelo celular
                 controls={true} 
                 width="100%" 
                 height="100%" 
                 className="react-player"
                 playsinline={true}
-                onPlay={() => setTocando(true)}
-                onPause={() => setTocando(false)}
               />
             </div>
             <button className="btn-virar-tela" onClick={virarTela}>⛶</button>

@@ -8,6 +8,9 @@ export default function Home() {
   const [videoAtual, setVideoAtual] = useState(null);
   const [busca, setBusca] = useState('');
   
+  // CRIAMOS O ESTADO DE AUTOPLAY AQUI (Começa desligado: 0)
+  const [autoplay, setAutoplay] = useState(0);
+  
   const playerContainerRef = useRef(null);
 
   useEffect(() => {
@@ -33,6 +36,7 @@ export default function Home() {
 
   const tocarVideo = (video) => {
     setVideoAtual(video);
+    setAutoplay(1); // LIGA O AUTOPLAY QUANDO CLICA NO CARD!
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -56,7 +60,6 @@ export default function Home() {
     return data.toLocaleDateString('pt-BR');
   };
 
-  // Função de segurança: Pega o ID exato do vídeo para o Iframe oficial
   const pegarIdDoVideo = (url) => {
     if (!url) return '';
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -83,10 +86,10 @@ export default function Home() {
         <>
           <div className="player-section" ref={playerContainerRef}>
             <div className="player-wrapper">
-              {/* IFRAME OFICIAL DO YOUTUBE (Sem bibliotecas de terceiros) */}
+              {/* VEJA O FINAL DO src: Adicionamos o ?autoplay= */}
               <iframe 
                 className="react-player"
-                src={`https://www.youtube.com/embed/${videoAtual.videoId || pegarIdDoVideo(videoAtual.url)}`}
+                src={`https://www.youtube.com/embed/${videoAtual.videoId || pegarIdDoVideo(videoAtual.url)}?autoplay=${autoplay}`}
                 title={videoAtual.title}
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

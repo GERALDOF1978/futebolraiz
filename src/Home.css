@@ -100,3 +100,43 @@
   /* Limita o título a 2 linhas com "..." no final se for muito grande */
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
+/* =========================================
+   PROTEÇÃO CONTRA CLIQUES NO YOUTUBE
+   ========================================= */
+.escudo-topo {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 60px; /* Cobre o título do vídeo */
+  z-index: 5;
+}
+
+.escudo-rodape {
+  position: absolute;
+  bottom: 0; right: 0;
+  width: 120px; height: 50px; /* Cobre a logo do YouTube */
+  z-index: 5;
+}
+
+/* =========================================
+   CORREÇÃO DA TELA CHEIA / ROTAÇÃO
+   ========================================= */
+/* Quando o player entra em modo tela cheia nativo do navegador */
+.player-section:fullscreen .player-wrapper,
+.player-section:-webkit-full-screen .player-wrapper {
+  padding-top: 0 !important;
+  height: 100vh;
+  display: flex;
+  background-color: #000;
+}
+
+.player-section:fullscreen .react-player,
+.player-section:-webkit-full-screen .react-player {
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Ajuste o botão para não sumir na tela cheia */
+.player-section:fullscreen .btn-virar-tela,
+.player-section:-webkit-full-screen .btn-virar-tela {
+  z-index: 9999;
+}

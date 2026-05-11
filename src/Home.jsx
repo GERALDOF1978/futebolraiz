@@ -249,3 +249,64 @@ export default function Home() {
     </div>
   );
 }
+
+{/* ========================================== */}
+      {/* RODAPÉ PROFISSIONAL (VENDA, LINKS E DEV) */}
+      {/* ========================================== */}
+      <footer className="app-footer">
+        <div className="footer-content">
+          
+          <div className="footer-section">
+            <h4>🎥 Transmissões & Parcerias</h4>
+            <p>
+              Leve a emoção do seu campeonato para o mundo! Realizamos transmissões ao vivo profissionais via YouTube para jogos de futebol society, base e eventos. Quer destacar sua marca? Anuncie conosco!
+            </p>
+            <a 
+              href="https://wa.me/5519998584530?text=Olá%20Flavio!%20Vim%20pelo%20App%20Futebol%20Raiz.%20Gostaria%20de%20saber%20mais%20sobre%20transmissões%20e%20parcerias." 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="btn-whatsapp"
+            >
+              📲 Falar com Flavio Gava
+            </a>
+          </div>
+          
+          <div className="footer-section links-section">
+            <h4>📜 Institucional</h4>
+            <ul>
+              <li><a href="#termos" onClick={(e) => { e.preventDefault(); alert("Termos de Uso em atualização."); }}>Termos de Serviço</a></li>
+              <li><a href="#privacidade" onClick={(e) => { e.preventDefault(); alert("Política de Privacidade em atualização."); }}>Política de Privacidade</a></li>
+              <li><a href="#regras" onClick={(e) => { e.preventDefault(); alert("Regras de conduta da comunidade em atualização."); }}>Regras da Comunidade</a></li>
+            </ul>
+          </div>
+
+          {/* AQUI ENTRA A SUA ASSINATURA DE DESENVOLVEDOR */}
+          <div className="footer-section dev-section">
+            <h4>💻 Desenvolvedor</h4>
+            <p>Quer um aplicativo exclusivo e profissional igual a este para o seu negócio ou projeto?</p>
+            <div className="dev-contact">
+               <span className="dev-name">👨‍💻 Geraldo Filho</span>
+               <a 
+                 href="https://wa.me/5519999371408?text=Olá%20Geraldo!%20Acessei%20o%20app%20Futebol%20Raiz%20e%20gostaria%20de%20um%20orçamento%20para%20criar%20um%20aplicativo." 
+                 target="_blank" 
+                 rel="noopener noreferrer" 
+                 className="dev-link"
+               >
+                 📱 WhatsApp: (19) 99937-1408
+               </a>
+               <a href="mailto:geraldof1978@gmail.com" className="dev-link">
+                 ✉️ geraldof1978@gmail.com
+               </a>
+            </div>
+          </div>
+
+        </div>
+
+        <div className="footer-bottom">
+          <p>&copy; {new Date().getFullYear()} Futebol Raiz - FG. Todos os direitos reservados.</p>
+        </div>
+      </footer>
+
+    </div> /* Fim do app-container */
+  );
+}

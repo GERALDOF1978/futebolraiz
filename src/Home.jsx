@@ -79,12 +79,10 @@ export default function Home() {
       try {
         await navigator.share({
           title: 'Futebol Raiz - FG',
-          text: 'Baixe o app e assista aos melhores jogos de futebol society e base!',
+          text: 'Assista aos melhores jogos de futebol society e base!',
           url: window.location.origin, 
         });
-      } catch (error) {
-        console.log('Compartilhamento cancelado');
-      }
+      } catch (error) {}
     }
   };
 
@@ -143,29 +141,30 @@ export default function Home() {
           </div>
           
           <div className="video-info">
-            <h2>{videoAtual.title}</h2>
+            {/* RESOLUÇÃO DO ERRO: Envolver texto em span impede quebras de tradução */}
+            <h2 dangerouslySetInnerHTML={{ __html: videoAtual.title }}></h2>
             {mostrarStats && (
               <div className="status-bar">
-                 <span>👁️ {videoAtual.views || 0} visualizações</span>
-                 <span>👍 {videoAtual.likes || 0} curtidas</span>
-                 <span>🏟️ Local: {videoAtual.local || 'Não informado'}</span>
+                 <span>👁️ {videoAtual.views || 0}</span>
+                 <span>👍 {videoAtual.likes || 0}</span>
+                 <span>🏟️ {videoAtual.local || 'Local N/I'}</span>
               </div>
             )}
-            <p className="admin-info">{videoAtual.extraInfo}</p>
+            <p className="admin-info" dangerouslySetInnerHTML={{ __html: videoAtual.extraInfo }}></p>
           </div>
 
           <div className="action-buttons">
-            <button className="btn-action" onClick={compartilharApp}>📤 Compartilhar App</button>
-            <a href={`https://www.youtube.com/watch?v=${videoAtual.videoId || pegarIdDoVideo(videoAtual.url)}`} target="_blank" rel="noopener noreferrer" className="btn-action">👍 Deixar Like</a>
-            <a href="https://www.youtube.com/@futebolraiz-fg?sub_confirmation=1" target="_blank" rel="noopener noreferrer" className="btn-action btn-inscrever">🔔 Inscrever-se</a>
+            <button className="btn-action" onClick={compartilharApp}>📤 Partilhar</button>
+            <a href={`https://www.youtube.com/watch?v=${videoAtual.videoId || pegarIdDoVideo(videoAtual.url)}`} target="_blank" rel="noopener noreferrer" className="btn-action">👍 Like</a>
+            <a href="https://www.youtube.com/@futebolraiz-fg?sub_confirmation=1" target="_blank" rel="noopener noreferrer" className="btn-action btn-inscrever">🔔 Subscrever</a>
           </div>
         </>
       ) : (
-        <div style={{ padding: '20px', textAlign: 'center' }}><p>Carregando vídeos...</p></div>
+        <div style={{ padding: '20px', textAlign: 'center' }}><p>A carregar vídeos...</p></div>
       )}
 
       <div className="search-container">
-        <input type="text" placeholder="Buscar vídeos..." value={busca} onChange={(e) => setBusca(e.target.value)} className="search-input" />
+        <input type="text" placeholder="Procurar vídeos..." value={busca} onChange={(e) => setBusca(e.target.value)} className="search-input" />
       </div>
 
       <h3 className="secao-titulo">Últimos Vídeos</h3>
@@ -191,7 +190,8 @@ export default function Home() {
             </div>
             <div className="card-info">
               <span className="video-date">{formatarData(video.dataCadastro)}</span>
-              <h3>{video.title}</h3>
+              {/* RESOLUÇÃO DO ERRO AQUI TAMBÉM */}
+              <h3 dangerouslySetInnerHTML={{ __html: video.title }}></h3>
             </div>
           </div>
         ))}
@@ -201,20 +201,15 @@ export default function Home() {
         <div className="footer-content">
           <div className="footer-section">
             <h4>🎥 Transmissões</h4>
-            <p>Leve a emoção do seu campeonato para o mundo! Fale com Flavio Gava.</p>
-            <a href="https://wa.me/5519998584530" target="_blank" rel="noopener noreferrer" className="btn-whatsapp">📲 WhatsApp Flávio</a>
+            <p>Leve a emoção do seu campeonato para o mundo!</p>
+            <a href="https://wa.me/5519998584530" target="_blank" rel="noopener noreferrer" className="btn-whatsapp">📲 Contactar Flávio</a>
           </div>
-          
           <div className="footer-section dev-contact">
             <h4>💻 Desenvolvedor</h4>
             <span className="dev-name">Geraldo Filho</span>
-            <p>Quer um app profissional?</p>
             <a href="https://wa.me/5519999371408" className="dev-link">📱 (19) 99937-1408</a>
             <a href="mailto:geraldof1978@gmail.com" className="dev-link">✉️ geraldof1978@gmail.com</a>
           </div>
-        </div>
-        <div className="footer-bottom">
-          <p>&copy; {new Date().getFullYear()} Futebol Raiz - FG.</p>
         </div>
       </footer>
     </div>

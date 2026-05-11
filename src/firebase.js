@@ -1,7 +1,7 @@
-// src/firebase.js
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getFirestore } from "firebase/firestore"; // Adicionamos o Firestore aqui
+import { getFirestore } from "firebase/firestore";
+import { getMessaging } from "firebase/messaging"; // Adicionamos o Messaging aqui
 
 const firebaseConfig = {
   apiKey: "AIzaSyAfUCj3xrFMuiNcnRxOWzY1RKGPtVyI75Y",
@@ -17,5 +17,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 
-// Exporta o banco de dados para usarmos no Admin e na Home
+// Exporta o banco de dados e o mensageiro para usarmos no App
 export const db = getFirestore(app);
+export const messaging = getMessaging(app);

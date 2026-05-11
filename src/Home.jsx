@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { db } from './firebase';
 import { collection, onSnapshot, query, orderBy, doc } from 'firebase/firestore';
 import './Home.css'; 
+import { messaging } from './firebase';
+import { getToken } from 'firebase/messaging';
 
 export default function Home() {
   const [videos, setVideos] = useState([]);
@@ -44,6 +46,27 @@ export default function Home() {
         }
       }
     });
+
+const pedirPermissaoNotificacao = async () => {
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        const token = await getToken(messaging, { 
+          vapidKey: 'BKQttoVmCcyQH5J4wKalKmTTBde-Hi3HD2Dmi4wgczitfNSu58kJ6tBWC96WI7PiouYIgwTOa_vTFzQspe9vBu8' 
+        });
+        if (token) {
+          alert('🔔 Uhuu! Você ativou as notificações com sucesso. Agora você não perde nenhum lance!');
+        }
+      } else {
+        alert('Você bloqueou as notificações. Ative no cadeado do navegador para não perder os jogos!');
+      }
+    } catch (error) {
+      console.error('Erro ao ativar notificações:', error);
+      alert('Ops! As notificações não são suportadas neste navegador/dispositivo ainda.');
+    }
+  };
+
+
 
     return () => { unsubscribeVideos(); unsubscribeConfig(); unsubSplash(); };
   }, [videoAtual, splashImg]);
@@ -157,9 +180,21 @@ export default function Home() {
           </div>
 
           <div className="action-buttons">
-            <button className="btn-action" onClick={compartilharApp}>📤 Partilhar</button>
-            <a href={`https://www.youtube.com/watch?v=${videoAtual.videoId || pegarIdDoVideo(videoAtual.url)}`} target="_blank" rel="noopener noreferrer" className="btn-action">👍 Like</a>
-            <a href="https://www.youtube.com/@futebolraiz-fg?sub_confirmation=1" target="_blank" rel="noopener noreferrer" className="btn-action btn-inscrever">🔔 Subscrever</a>
+            <button className="btn-action" onClick={compartilharApp}>
+              📤 Partilhar
+            </button>
+
+            <a href={`https://www.youtube.com/watch?v=${videoAtual.videoId || pegarIdDoVideo(videoAtual.url)}`} target="_blank" rel="noopener noreferrer" className="btn-action">
+              👍 Like
+            </a>
+
+            <button className="btn-action" onClick={pedirPermissaoNotificacao} style={{ background: '#e62117', color: '#fff' }}>
+              🔔 Alertas
+            </button>
+            
+            <a href="https://www.youtube.com/@futebolraiz-fg?sub_confirmation=1" target="_blank" rel="noopener noreferrer" className="btn-action btn-inscrever">
+              🔴 Subscrever
+            </a>
           </div>
         </>
       ) : (

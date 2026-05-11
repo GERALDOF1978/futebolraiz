@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { db, messaging } from './firebase';
 import { collection, onSnapshot, query, orderBy, doc, setDoc } from 'firebase/firestore';
-import { getToken } from 'firebase/messaging';
+import { getToken, onMessage } from 'firebase/messaging'; // <-- Adicionamos o onMessage aqui
 import './Home.css'; 
+
+
 
 export default function Home() {
   const [videos, setVideos] = useState([]);

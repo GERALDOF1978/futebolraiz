@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { db } from './firebase';
-import { collection, addDoc } from 'firebase/firestore';
-import Papa from 'papaparse'; // Leitor do CSV
+// Adicionamos getDocs, doc e updateDoc
+import { collection, addDoc, getDocs, doc, updateDoc } from 'firebase/firestore';
+import Papa from 'papaparse'; 
 
 export default function Admin() {
   const [url, setUrl] = useState('');
@@ -9,8 +10,13 @@ export default function Admin() {
   const [infoExtra, setInfoExtra] = useState('');
   const [mensagem, setMensagem] = useState('');
   const [msgLote, setMsgLote] = useState('');
+  
+  // NOVOS ESTADOS PARA A SINCRONIZAÇÃO DO YOUTUBE
+  const [apiKey, setApiKey] = useState('');
+  const [syncMsg, setSyncMsg] = useState('');
 
-  // Converte a data do CSV (ex: 2026-05-10 08:49:43) para o Firebase
+  // ... (mantenha as funções converterDataCSV, pegarIdDoVideo, importarCSV e salvarVideo como já estavam) ...
+
   const converterDataCSV = (dataStr) => {
     if (!dataStr) return new Date();
     return new Date(dataStr.replace(" ", "T")); 
@@ -23,90 +29,97 @@ export default function Admin() {
     return (match && match[2].length === 11) ? match[2] : null;
   };
 
-  // FUNÇÃO MÁGICA DE IMPORTAR O CSV
-  const importarCSV = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    setMsgLote('Lendo arquivo CSV e importando para o Firebase. Aguarde...');
-    
-    Papa.parse(file, {
-      header: true, // Avisa que a primeira linha tem os nomes das colunas
-      skipEmptyLines: true,
-      complete: async (results) => {
-        const linhas = results.data;
-        let contador = 0;
+  // Funções importarCSV e salvarVideo que você já tem...
+  // (Para não ficar gigante, estou pulando elas aqui, você pode manter as suas)
 
-        for (let linha of linhas) {
-          if (!linha.videoId) continue; // Pula linhas vazias
+  // ==========================================
+  // NOVA FUNÇÃO: SINCRONIZAR COM YOUTUBE
+  // ==========================================
+  const sincronizarYouTube = async () => {
+    if (!apiKey) {
+      setSyncMsg('⚠️ Por favor, cole a sua Chave de API do YouTube primeiro.');
+      return;
+    }
+    setSyncMsg('Sincronizando... Buscando dados no Firebase...');
 
-          try {
-            await addDoc(collection(db, "videos"), {
-              videoId: linha.videoId,
-              url: `https://www.youtube.com/watch?v=${linha.videoId}`,
-              title: linha.videoTitle || 'Sem Título',
-              thumb: `https://img.youtube.com/vi/${linha.videoId}/maxresdefault.jpg`, // Pega a thumb em alta qualidade
-              extraInfo: linha.videoDescription || '',
-              dataCadastro: converterDataCSV(linha.publishedAtSQL),
-              // NOVAS INFORMAÇÕES:
-              views: linha.viewCount || '0',
-              likes: linha.likeCount || '0',
-              local: linha.locationDescription || 'Não informado'
-            });
-            contador++;
-          } catch (error) {
-            console.error("Erro ao importar: ", error);
-          }
-        }
-        setMsgLote(`🎉 Sucesso! ${contador} vídeos foram importados do CSV para o App!`);
-      },
-      error: (error) => {
-        setMsgLote(`Erro ao ler arquivo: ${error.message}`);
-      }
-    });
-  };
-
-  // Salvar vídeo manual (mantivemos)
-  const salvarVideo = async (e) => {
-    e.preventDefault();
-    setMensagem('Salvando...');
-    const videoId = pegarIdDoVideo(url);
-    if (!videoId) { setMensagem('URL inválida!'); return; }
     try {
-      await addDoc(collection(db, "videos"), {
-        videoId: videoId, url: url, title: titulo, thumb: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
-        extraInfo: infoExtra, dataCadastro: new Date(), views: 0, likes: 0, local: 'Adicionado Manualmente'
+      // 1. Pega todos os vídeos do seu Firebase
+      const querySnapshot = await getDocs(collection(db, "videos"));
+      const videosDB = [];
+      querySnapshot.forEach((doc) => {
+        videosDB.push({ id: doc.id, videoId: doc.data().videoId });
       });
-      setMensagem('Salvo com sucesso!'); setUrl(''); setTitulo(''); setInfoExtra('');
-    } catch (error) { setMensagem('Erro ao salvar.'); }
+
+      if (videosDB.length === 0) {
+        setSyncMsg('Nenhum vídeo encontrado no banco de dados.');
+        return;
+      }
+
+      setSyncMsg(`Sincronizando ${videosDB.length} vídeos com o YouTube...`);
+
+      // 2. A API do YouTube só permite checar 50 vídeos por vez. Vamos dividir em lotes.
+      let atualizados = 0;
+      for (let i = 0; i < videosDB.length; i += 50) {
+        const lote = videosDB.slice(i, i + 50);
+        // Junta os IDs separando por vírgula (ex: id1,id2,id3...)
+        const idsString = lote.map(v => v.videoId).join(',');
+
+        // 3. Chama a API do YouTube
+        const response = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${idsString}&key=${apiKey}`);
+        const data = await response.json();
+
+        if (data.items) {
+           for (const item of data.items) {
+              // Encontra qual é este vídeo no nosso banco de dados
+              const videoParaAtualizar = lote.find(v => v.videoId === item.id);
+              if (videoParaAtualizar) {
+                 // 4. Atualiza os dados no Firebase!
+                 const videoRef = doc(db, "videos", videoParaAtualizar.id);
+                 await updateDoc(videoRef, {
+                    views: item.statistics.viewCount || '0',
+                    likes: item.statistics.likeCount || '0'
+                 });
+                 atualizados++;
+              }
+           }
+        }
+      }
+      setSyncMsg(`✅ Sucesso! Views e Likes de ${atualizados} vídeos foram atualizados!`);
+    } catch (error) {
+      console.error(error);
+      setSyncMsg('❌ Erro na sincronização. Verifique se a sua Chave da API está correta e ativada.');
+    }
   };
 
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', color: '#fff' }}>
       <h2 style={{ color: '#e62117' }}>Painel Admin - Futebol Raiz FG</h2>
       
-      {/* UPLOAD DO CSV */}
-      <div style={{ background: '#222', padding: '20px', borderRadius: '10px', marginTop: '20px' }}>
-        <h3>📁 Importar Arquivo CSV (YouTube)</h3>
+      {/* ========================================== */}
+      {/* NOVA SESSÃO: SINCRONIZAR VIEWS E LIKES */}
+      {/* ========================================== */}
+      <div style={{ background: '#1a1a1a', border: '1px solid #333', padding: '20px', borderRadius: '10px', marginTop: '20px' }}>
+        <h3>🔄 Atualizar Views e Likes (YouTube API)</h3>
         <p style={{ fontSize: '14px', color: '#aaa', marginBottom: '15px' }}>
-          Selecione o arquivo CSV do seu canal para importar todos os vídeos com visualizações, curtidas e local.
+          Cole sua chave de API do YouTube para buscar as visualizações e curtidas atualizadas de <b>todos os vídeos</b> que já estão no App.
         </p>
-        <input type="file" accept=".csv" onChange={importarCSV} style={inputStyle} />
-        {msgLote && <p style={{ marginTop: '10px', color: '#00ff88', fontWeight: 'bold' }}>{msgLote}</p>}
+        <input 
+          type="text" 
+          value={apiKey} 
+          onChange={(e) => setApiKey(e.target.value)} 
+          placeholder="AIzaSyD6cX5F356OhIxIscJZ9bhkevjX7VMmdrU" 
+          style={inputStyle} 
+        />
+        <button onClick={sincronizarYouTube} style={{ ...btnStyle, backgroundColor: '#3ea6ff', marginTop: '10px', width: '100%' }}>
+          Buscar Novos Dados no YouTube
+        </button>
+        {syncMsg && <p style={{ marginTop: '10px', color: '#fff', fontWeight: 'bold' }}>{syncMsg}</p>}
       </div>
 
       <hr style={{ borderColor: '#333', margin: '30px 0' }}/>
+      
+      {/* Mantenha aqui as suas divs de "Importar Arquivo CSV" e "Cadastrar Vídeo Manualmente" que já existiam! */}
 
-      <div style={{ background: '#111', padding: '20px', borderRadius: '10px' }}>
-        <h3>➕ Cadastrar Vídeo Manualmente</h3>
-        <form onSubmit={salvarVideo} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
-          <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="URL do YouTube" required style={inputStyle} />
-          <input type="text" value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Título" required style={inputStyle} />
-          <textarea value={infoExtra} onChange={(e) => setInfoExtra(e.target.value)} placeholder="Informações Extras" rows="3" required style={inputStyle} />
-          <button type="submit" style={btnStyle}>Salvar Vídeo</button>
-        </form>
-        {mensagem && <p style={{ marginTop: '15px', color: '#00ff88' }}>{mensagem}</p>}
-      </div>
     </div>
   );
 }

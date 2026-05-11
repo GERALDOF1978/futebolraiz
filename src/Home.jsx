@@ -67,16 +67,16 @@ export default function Home() {
 
   return (
     <div className="app-container">
+      {/* CABEÇALHO SÓ COM BANNER E LOGO (Título removido) */}
       <header className="header-banner">
         <div className="banner-overlay"></div>
         <div className="header-content">
           <img 
-            src="COLE_O_LINK_DO_LOGO_AQUI" 
+            src="https://yt3.googleusercontent.com/nihxmU1qKISJiz-FddGHYk6VA2dEteXe7ZtwSjC1goE3byavO9HNJ-HkTW1iduHKv0Pimd6nDqA=w1060-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj" 
             alt="Logo" 
             className="header-logo" 
             onError={(e) => { e.target.style.display = 'none'; }} 
           />
-          <h1 className="canal-nome">Futebol Raiz - FG</h1>
         </div>
       </header>
 
@@ -84,27 +84,24 @@ export default function Home() {
         <>
           <div className="player-section" ref={playerContainerRef}>
             <div className="player-wrapper">
-              
-              {/* NOSSOS ESCUDOS INVISÍVEIS PARA BLOQUEAR CLIQUES INDESEJADOS */}
-              <div className="escudo-topo"></div>
-              <div className="escudo-rodape"></div>
-
-              {/* Parâmetros adicionados: modestbranding=1 (remove logo YT) e fs=0 (remove botão fullscreen do YT) */}
+              {/* O atributo SANDBOX abaixo é a cadeia que prende o YouTube no seu app */}
               <iframe 
                 className="react-player"
                 src={`https://www.youtube.com/embed/${videoAtual.videoId || pegarIdDoVideo(videoAtual.url)}?autoplay=${autoplay}&modestbranding=1&rel=0&fs=0`}
                 title={videoAtual.title}
                 frameBorder="0"
+                sandbox="allow-scripts allow-same-origin allow-presentation" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               ></iframe>
             </div>
-            {/* NOSSO BOTÃO PERSONALIZADO DE TELA CHEIA */}
             <button className="btn-virar-tela" onClick={virarTela}>⛶</button>
           </div>
+          
+          {/* TÍTULO E DESCRIÇÃO CHAMATIVOS */}
           <div className="video-info">
             <h2>{videoAtual.title}</h2>
-            <p className="admin-info">📝 {videoAtual.extraInfo}</p>
+            <p className="admin-info">{videoAtual.extraInfo}</p>
           </div>
         </>
       ) : (
@@ -118,7 +115,12 @@ export default function Home() {
       <h3 className="secao-titulo">Últimos Vídeos</h3>
       <div className="video-scroll-container">
         {videosFiltrados.map((video) => (
-          <div key={video.id} className="video-card-horizontal" onClick={() => tocarVideo(video)}>
+          /* AQUI ADICIONAMOS A CLASSE 'active-card' SE FOR O VÍDEO ATUAL */
+          <div 
+            key={video.id} 
+            className={`video-card-horizontal ${videoAtual?.id === video.id ? 'active-card' : ''}`} 
+            onClick={() => tocarVideo(video)}
+          >
             <div className="thumb-container">
               <img src={video.thumb} alt={video.title} className="thumbnail" />
               <div className="play-overlay">▶</div>

@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import { db } from './firebase';
-// Adicionamos 'doc' para ler as configurações
 import { collection, onSnapshot, query, orderBy, doc } from 'firebase/firestore';
 import './Home.css'; 
 
@@ -12,36 +11,60 @@ export default function Home() {
   
   // ESTADO QUE CONTROLA SE AS ESTATÍSTICAS APARECEM OU NÃO
   const [mostrarStats, setMostrarStats] = useState(true);
+
+  // ==========================================
+  // ESTADOS DO SPLASH SCREEN (ANÚNCIO)
+  // ==========================================
+  const [splashImg, setSplashImg] = useState(null);
+  const [mostrarSplash, setMostrarSplash] = useState(false);
   
   const playerContainerRef = useRef(null);
 
-useEffect(() => {
+  useEffect(() => {
+    // 1. Busca os vídeos e ignora os ocultos
     const q = query(collection(db, "videos"), orderBy("dataCadastro", "desc"));
     const unsubscribeVideos = onSnapshot(q, (snapshot) => {
       const videosData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setVideos(videosData);
       
-      // AQUI: Pega apenas os vídeos que NÃO estão ocultos para tocar primeiro
       const videosVisiveis = videosData.filter(v => !v.oculto);
       
       if (videosVisiveis.length > 0 && !videoAtual) {
         setVideoAtual(videosVisiveis[0]);
       }
     });
-//...
 
-    // 2. Escuta o botão liga/desliga do painel Admin
+    // 2. Escuta o botão liga/desliga de estatísticas do painel Admin
     const unsubscribeConfig = onSnapshot(doc(db, "config", "geral"), (docSnap) => {
       if (docSnap.exists()) {
-        // Se a chave existir no banco, atualiza o estado
         setMostrarStats(docSnap.data().mostrarStats ?? true);
       }
     });
 
-    return () => { unsubscribeVideos(); unsubscribeConfig(); };
-  }, [videoAtual]);
+    // 3. Escuta as configurações do Splash Screen
+    const unsubSplash = onSnapshot(doc(db, "config", "splash"), (docSnap) => {
+      if (docSnap.exists()) {
+        const dados = docSnap.data();
+        const agora = new Date();
+        const expira = new Date(dados.expiraEm);
 
- // Aqui nós avisamos que, além de bater com a busca, o vídeo NÃO pode estar oculto
+        // Se estiver ativo, a data não venceu e a imagem ainda não foi carregada nesta sessão
+        if (dados.ativo && agora < expira && !splashImg) {
+          setSplashImg(dados.urlImagem);
+          setMostrarSplash(true);
+          
+          // O Splash some automaticamente após 7 a 10 segundos (aqui configurado para 7000ms)
+          setTimeout(() => {
+            setMostrarSplash(false);
+          }, 7000);
+        }
+      }
+    });
+
+    return () => { unsubscribeVideos(); unsubscribeConfig(); unsubSplash(); };
+  }, [videoAtual, splashImg]);
+
+  // Filtra por busca e garante que os ocultos não apareçam
   const videosFiltrados = videos.filter(video => 
     !video.oculto && 
     (video.title.toLowerCase().includes(busca.toLowerCase()) || 
@@ -99,6 +122,28 @@ useEffect(() => {
 
   return (
     <div className="app-container">
+      
+      {/* ========================================== */}
+      {/* 🚀 TELA DE SPLASH (SOBREPÕE TUDO) */}
+      {/* ========================================== */}
+      {mostrarSplash && (
+        <div 
+          onClick={() => setMostrarSplash(false)} // Some na hora se o usuário tocar na tela
+          style={{
+            position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+            backgroundColor: '#000', zIndex: 99999, display: 'flex',
+            justifyContent: 'center', alignItems: 'center', cursor: 'pointer'
+          }}
+        >
+          <img 
+            src={splashImg} 
+            alt="Anúncio Patrocinador" 
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+          />
+        </div>
+      )}
+
+      {/* CABEÇALHO COM LOGO OFICIAL */}
       <header className="header-banner">
         <div className="banner-overlay"></div>
         <div className="header-content">
@@ -133,7 +178,7 @@ useEffect(() => {
           <div className="video-info">
             <h2>{videoAtual.title}</h2>
             
-            {/* AQUI ESTÁ A MÁGICA: Só renderiza essa barra se o Admin deixar! */}
+            {/* Só renderiza essa barra se o Admin deixar */}
             {mostrarStats && (
               <div className="status-bar">
                  <span>👁️ {videoAtual.views || 0} visualizações</span>

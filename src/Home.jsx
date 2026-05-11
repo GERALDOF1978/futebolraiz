@@ -8,55 +8,39 @@ export default function Home() {
   const [videoAtual, setVideoAtual] = useState(null);
   const [busca, setBusca] = useState('');
   const [autoplay, setAutoplay] = useState(0);
-  
-  // ESTADO QUE CONTROLA SE AS ESTATÍSTICAS APARECEM OU NÃO
   const [mostrarStats, setMostrarStats] = useState(true);
-
-  // ==========================================
-  // ESTADOS DO SPLASH SCREEN (ANÚNCIO)
-  // ==========================================
   const [splashImg, setSplashImg] = useState(null);
   const [mostrarSplash, setMostrarSplash] = useState(false);
   
   const playerContainerRef = useRef(null);
 
   useEffect(() => {
-    // 1. Busca os vídeos e ignora os ocultos
     const q = query(collection(db, "videos"), orderBy("dataCadastro", "desc"));
     const unsubscribeVideos = onSnapshot(q, (snapshot) => {
       const videosData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setVideos(videosData);
       
       const videosVisiveis = videosData.filter(v => !v.oculto);
-      
       if (videosVisiveis.length > 0 && !videoAtual) {
         setVideoAtual(videosVisiveis[0]);
       }
     });
 
-    // 2. Escuta o botão liga/desliga de estatísticas do painel Admin
     const unsubscribeConfig = onSnapshot(doc(db, "config", "geral"), (docSnap) => {
       if (docSnap.exists()) {
         setMostrarStats(docSnap.data().mostrarStats ?? true);
       }
     });
 
-    // 3. Escuta as configurações do Splash Screen
     const unsubSplash = onSnapshot(doc(db, "config", "splash"), (docSnap) => {
       if (docSnap.exists()) {
         const dados = docSnap.data();
         const agora = new Date();
         const expira = new Date(dados.expiraEm);
-
-        // Se estiver ativo, a data não venceu e a imagem ainda não foi carregada nesta sessão
         if (dados.ativo && agora < expira && !splashImg) {
           setSplashImg(dados.urlImagem);
           setMostrarSplash(true);
-          
-          // O Splash some automaticamente após 7 a 10 segundos
-          setTimeout(() => {
-            setMostrarSplash(false);
-          }, 7000);
+          setTimeout(() => setMostrarSplash(false), 7000);
         }
       }
     });
@@ -64,7 +48,6 @@ export default function Home() {
     return () => { unsubscribeVideos(); unsubscribeConfig(); unsubSplash(); };
   }, [videoAtual, splashImg]);
 
-  // Filtra por busca e garante que os ocultos não apareçam
   const videosFiltrados = videos.filter(video => 
     !video.oculto && 
     (video.title.toLowerCase().includes(busca.toLowerCase()) || 
@@ -102,8 +85,6 @@ export default function Home() {
       } catch (error) {
         console.log('Compartilhamento cancelado');
       }
-    } else {
-      alert(`Copie o link para compartilhar: ${window.location.origin}`);
     }
   };
 
@@ -122,37 +103,23 @@ export default function Home() {
 
   return (
     <div className="app-container">
-      
-      {/* ========================================== */}
-      {/* 🚀 TELA DE SPLASH (SOBREPÕE TUDO) */}
-      {/* ========================================== */}
       {mostrarSplash && (
         <div 
-          onClick={() => setMostrarSplash(false)} // Some na hora se o usuário tocar na tela
+          onClick={() => setMostrarSplash(false)}
           style={{
             position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
             backgroundColor: '#000', zIndex: 99999, display: 'flex',
             justifyContent: 'center', alignItems: 'center', cursor: 'pointer'
           }}
         >
-          <img 
-            src={splashImg} 
-            alt="Anúncio Patrocinador" 
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-          />
+          <img src={splashImg} alt="Anúncio" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
       )}
 
-      {/* CABEÇALHO COM LOGO OFICIAL */}
       <header className="header-banner">
         <div className="banner-overlay"></div>
         <div className="header-content">
-          <img 
-            src="https://i.ibb.co/jZ5x1t1g/loginho.png" 
-            alt="Logo Futebol Raiz" 
-            className="header-logo" 
-            onError={(e) => { e.target.style.display = 'none'; }} 
-          />
+          <img src="https://i.ibb.co/jZ5x1t1g/loginho.png" alt="Logo" className="header-logo" />
         </div>
       </header>
 
@@ -177,8 +144,6 @@ export default function Home() {
           
           <div className="video-info">
             <h2>{videoAtual.title}</h2>
-            
-            {/* Só renderiza essa barra se o Admin deixar */}
             {mostrarStats && (
               <div className="status-bar">
                  <span>👁️ {videoAtual.views || 0} visualizações</span>
@@ -186,28 +151,13 @@ export default function Home() {
                  <span>🏟️ Local: {videoAtual.local || 'Não informado'}</span>
               </div>
             )}
-
             <p className="admin-info">{videoAtual.extraInfo}</p>
           </div>
 
           <div className="action-buttons">
-            <button className="btn-action" onClick={compartilharApp}>
-              📤 Compartilhar App
-            </button>
-            <a 
-              href={`https://www.youtube.com/watch?v=${videoAtual.videoId || pegarIdDoVideo(videoAtual.url)}`} 
-              target="_blank" rel="noopener noreferrer" 
-              className="btn-action"
-            >
-              👍 Deixar Like
-            </a>
-            <a 
-              href="https://www.youtube.com/@futebolraiz-fg?sub_confirmation=1" 
-              target="_blank" rel="noopener noreferrer" 
-              className="btn-action btn-inscrever"
-            >
-              🔔 Inscrever-se
-            </a>
+            <button className="btn-action" onClick={compartilharApp}>📤 Compartilhar App</button>
+            <a href={`https://www.youtube.com/watch?v=${videoAtual.videoId || pegarIdDoVideo(videoAtual.url)}`} target="_blank" rel="noopener noreferrer" className="btn-action">👍 Deixar Like</a>
+            <a href="https://www.youtube.com/@futebolraiz-fg?sub_confirmation=1" target="_blank" rel="noopener noreferrer" className="btn-action btn-inscrever">🔔 Inscrever-se</a>
           </div>
         </>
       ) : (
@@ -215,106 +165,58 @@ export default function Home() {
       )}
 
       <div className="search-container">
-        <input 
-          type="text" 
-          placeholder="Buscar vídeos, times, campeonatos..." 
-          value={busca} 
-          onChange={(e) => setBusca(e.target.value)} 
-          className="search-input" 
-        />
+        <input type="text" placeholder="Buscar vídeos..." value={busca} onChange={(e) => setBusca(e.target.value)} className="search-input" />
       </div>
 
-      {/* LISTA DE VÍDEOS (CARROSSEL) */}
-<h3 className="secao-titulo">Últimos Vídeos</h3>
-<div className="video-scroll-container">
-  {videosFiltrados.map((video) => (
-    <div 
-      key={video.id} 
-      className={`video-card-horizontal ${videoAtual?.id === video.id ? 'active-card' : ''}`} 
-      onClick={() => tocarVideo(video)}
-    >
-      <div className="thumb-container">
-        <img 
-          src={video.thumb} 
-          alt={video.title} 
-          className="thumbnail" 
-          /* MÁGICA AQUI: Se a imagem der erro 404, ele troca para a versão padrão na hora */
-          onError={(e) => {
-            if (!e.target.src.includes('hqdefault.jpg')) {
-              e.target.src = `https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`;
-            }
-          }}
-        />
-        <div className="play-overlay">▶</div>
-      </div>
-      <div className="card-info">
-        <span className="video-date">{formatarData(video.dataCadastro)}</span>
-        <h3>{video.title}</h3>
-      </div>
-    </div>
-  ))}
-  {videosFiltrados.length === 0 && videos.length > 0 && (
-    <p className="no-results">Nenhum vídeo encontrado para essa busca.</p>
-  )}
-</div>
-
-      {/* ========================================== */}
-      {/* RODAPÉ PROFISSIONAL (VENDA, LINKS E DEV) */}
-      {/* ========================================== */}
-      <footer className="app-footer">
-        <div className="footer-content">
-          
-          <div className="footer-section">
-            <h4>🎥 Transmissões & Parcerias</h4>
-            <p>
-              Leve a emoção do seu campeonato para o mundo! Realizamos transmissões ao vivo profissionais via YouTube para jogos de futebol society, base e eventos. Quer destacar sua marca? Anuncie conosco!
-            </p>
-            <a 
-              href="https://wa.me/5519998584530?text=Olá%20Flavio!%20Vim%20pelo%20App%20Futebol%20Raiz.%20Gostaria%20de%20saber%20mais%20sobre%20transmissões%20e%20parcerias." 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="btn-whatsapp"
-            >
-              📲 Falar com Flavio Gava
-            </a>
-          </div>
-          
-          <div className="footer-section links-section">
-            <h4>📜 Institucional</h4>
-            <ul>
-              <li><a href="#termos" onClick={(e) => { e.preventDefault(); alert("Termos de Uso em atualização."); }}>Termos de Serviço</a></li>
-              <li><a href="#privacidade" onClick={(e) => { e.preventDefault(); alert("Política de Privacidade em atualização."); }}>Política de Privacidade</a></li>
-              <li><a href="#regras" onClick={(e) => { e.preventDefault(); alert("Regras de conduta da comunidade em atualização."); }}>Regras da Comunidade</a></li>
-            </ul>
-          </div>
-
-          {/* AQUI ENTRA A SUA ASSINATURA DE DESENVOLVEDOR */}
-          <div className="footer-section dev-section">
-            <h4>💻 Desenvolvedor</h4>
-            <p>Quer um aplicativo exclusivo e profissional igual a este para o seu negócio ou projeto?</p>
-            <div className="dev-contact">
-               <span className="dev-name">👨‍💻 Geraldo Filho</span>
-               <a 
-                 href="https://wa.me/5519999371408?text=Olá%20Geraldo!%20Acessei%20o%20app%20Futebol%20Raiz%20e%20gostaria%20de%20um%20orçamento%20para%20criar%20um%20aplicativo." 
-                 target="_blank" 
-                 rel="noopener noreferrer" 
-                 className="dev-link"
-               >
-                 📱 WhatsApp: (19) 99937-1408
-               </a>
-               <a href="mailto:geraldof1978@gmail.com" className="dev-link">
-                 ✉️ geraldof1978@gmail.com
-               </a>
+      <h3 className="secao-titulo">Últimos Vídeos</h3>
+      <div className="video-scroll-container">
+        {videosFiltrados.map((video) => (
+          <div 
+            key={video.id} 
+            className={`video-card-horizontal ${videoAtual?.id === video.id ? 'active-card' : ''}`} 
+            onClick={() => tocarVideo(video)}
+          >
+            <div className="thumb-container">
+              <img 
+                src={video.thumb} 
+                alt={video.title} 
+                className="thumbnail" 
+                onError={(e) => {
+                  if (!e.target.src.includes('hqdefault.jpg')) {
+                    e.target.src = `https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`;
+                  }
+                }}
+              />
+              <div className="play-overlay">▶</div>
+            </div>
+            <div className="card-info">
+              <span className="video-date">{formatarData(video.dataCadastro)}</span>
+              <h3>{video.title}</h3>
             </div>
           </div>
+        ))}
+      </div>
 
+      <footer className="app-footer">
+        <div className="footer-content">
+          <div className="footer-section">
+            <h4>🎥 Transmissões</h4>
+            <p>Leve a emoção do seu campeonato para o mundo! Fale com Flavio Gava.</p>
+            <a href="https://wa.me/5519998584530" target="_blank" rel="noopener noreferrer" className="btn-whatsapp">📲 WhatsApp Flávio</a>
+          </div>
+          
+          <div className="footer-section dev-contact">
+            <h4>💻 Desenvolvedor</h4>
+            <span className="dev-name">Geraldo Filho</span>
+            <p>Quer um app profissional?</p>
+            <a href="https://wa.me/5519999371408" className="dev-link">📱 (19) 99937-1408</a>
+            <a href="mailto:geraldof1978@gmail.com" className="dev-link">✉️ geraldof1978@gmail.com</a>
+          </div>
         </div>
-
         <div className="footer-bottom">
-          <p>&copy; {new Date().getFullYear()} Futebol Raiz - FG. Todos os direitos reservados.</p>
+          <p>&copy; {new Date().getFullYear()} Futebol Raiz - FG.</p>
         </div>
       </footer>
-
     </div>
   );
 }

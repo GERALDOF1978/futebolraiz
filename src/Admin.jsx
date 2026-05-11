@@ -1,40 +1,125 @@
 import { useState, useEffect } from 'react';
 import { db } from './firebase';
-// Adicionamos o 'orderBy' aqui nos imports!
-import { collection, addDoc, getDocs, doc, updateDoc, query, where, deleteDoc, onSnapshot, setDoc, orderBy } from 'firebase/firestore';
+import { collection, addDoc, getDocs, doc, updateDoc, query, where, onSnapshot, setDoc, orderBy } from 'firebase/firestore';
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 
 // ==========================================
 // SUAS CHAVES FIXAS 
 // ==========================================
 const MINHA_API_KEY = "AIzaSyD6cX5F356OhIxIscJZ9bhkevjX7VMmdrU";
 const MEU_CANAL_ID = "UCGB8jiI52Z5NaQbCwnEkF3A"; 
+const IMGBB_API_KEY = "4b9754c2755159cb53d4ac84ddb27f8d"; // Sua chave do ImgBB
 
 export default function Admin() {
+  // Estados de Login
+  const [usuario, setUsuario] = useState(null);
+  const [emailLogin, setEmailLogin] = useState('');
+  const [senhaLogin, setSenhaLogin] = useState('');
+  const [erroLogin, setErroLogin] = useState('');
+
+  // Estados dos Vídeos e Configurações
   const [url, setUrl] = useState('');
   const [titulo, setTitulo] = useState('');
   const [infoExtra, setInfoExtra] = useState('');
   const [mensagem, setMensagem] = useState('');
   const [syncMsg, setSyncMsg] = useState('');
-  
   const [videosLista, setVideosLista] = useState([]);
   const [mostrarStats, setMostrarStats] = useState(true);
 
+  // Estados do Splash Screen
+  const [splashImagem, setSplashImagem] = useState(null);
+  const [splashDataHora, setSplashDataHora] = useState('');
+  const [splashMsg, setSplashMsg] = useState('');
+
+  const auth = getAuth();
+
   useEffect(() => {
-    // 1. CORREÇÃO DA ORDEM: Agora puxa organizado pela dataCadastro igual na Home!
+    // 1. Escuta o Login
+    const unsubAuth = onAuthStateChanged(auth, (user) => {
+      setUsuario(user);
+    });
+
+    // 2. Escuta os vídeos na ordem correta
     const qVideos = query(collection(db, "videos"), orderBy("dataCadastro", "desc"));
     const unsubVideos = onSnapshot(qVideos, (snapshot) => {
       setVideosLista(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
     });
 
+    // 3. Escuta a configuração de mostrar estatísticas
     const unsubConfig = onSnapshot(doc(db, "config", "geral"), (docSnap) => {
       if (docSnap.exists()) {
         setMostrarStats(docSnap.data().mostrarStats ?? true);
       }
     });
 
-    return () => { unsubVideos(); unsubConfig(); };
-  }, []);
+    return () => { unsubAuth(); unsubVideos(); unsubConfig(); };
+  }, [auth]);
 
+  // ==========================================
+  // LOGIN E LOGOUT
+  // ==========================================
+  const fazerLogin = async (e) => {
+    e.preventDefault();
+    try {
+      await signInWithEmailAndPassword(auth, emailLogin, senhaLogin);
+      setErroLogin('');
+    } catch (error) {
+      setErroLogin('E-mail ou senha incorretos.');
+    }
+  };
+
+  const sair = () => signOut(auth);
+
+  // ==========================================
+  // FUNÇÕES DO SPLASH SCREEN
+  // ==========================================
+  const salvarSplash = async (e) => {
+    e.preventDefault();
+    if (!splashImagem || !splashDataHora) {
+      setSplashMsg('⚠️ Escolha uma imagem e defina a data/hora.');
+      return;
+    }
+    
+    setSplashMsg('⏳ Enviando imagem para o ImgBB e configurando...');
+    
+    try {
+      const formData = new FormData();
+      formData.append('image', splashImagem);
+      
+      const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+        method: 'POST',
+        body: formData
+      });
+      const dataImg = await res.json();
+      
+      if (!dataImg.data || !dataImg.data.url) {
+        throw new Error('Falha ao enviar imagem');
+      }
+      
+      const imageUrl = dataImg.data.url;
+      const dataExpiracao = new Date(splashDataHora).toISOString();
+      
+      await setDoc(doc(db, "config", "splash"), {
+        urlImagem: imageUrl,
+        expiraEm: dataExpiracao,
+        ativo: true
+      });
+
+      setSplashMsg('✅ Splash Screen configurado com sucesso!');
+      setSplashImagem(null);
+    } catch (error) {
+      setSplashMsg('❌ Erro ao configurar Splash. Verifique a imagem.');
+    }
+  };
+
+  const desativarSplash = async () => {
+    await setDoc(doc(db, "config", "splash"), { ativo: false }, { merge: true });
+    setSplashMsg('✅ Splash desativado manualmente.');
+  };
+
+  // ==========================================
+  // FUNÇÕES DE VÍDEOS
+  // ==========================================
   const pegarIdDoVideo = (link) => {
     if (!link) return '';
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -42,11 +127,7 @@ export default function Admin() {
     return (match && match[2].length === 11) ? match[2] : null;
   };
 
-  // ==========================================
-  // CORREÇÃO DO BOTÃO OCULTAR / RESTAURAR
-  // ==========================================
   const alternarVisibilidade = async (id, tituloVideo, estaOculto) => {
-    // Se estaOculto for undefined (vídeo antigo), considera como false.
     const statusAtual = estaOculto === true; 
     const acao = statusAtual ? "RESTAURAR" : "OCULTAR";
     
@@ -148,9 +229,51 @@ export default function Admin() {
     } catch (error) { setMensagem('Erro ao salvar vídeo.'); }
   };
 
+  // ==========================================
+  // RENDERIZAÇÃO TELA DE LOGIN
+  // ==========================================
+  if (!usuario) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#0f0f0f' }}>
+        <form onSubmit={fazerLogin} style={{ background: '#1a1a1a', padding: '30px', borderRadius: '10px', width: '90%', maxWidth: '400px', border: '1px solid #333' }}>
+          <h2 style={{ color: '#e62117', textAlign: 'center', marginBottom: '20px' }}>🔒 Acesso Restrito</h2>
+          <input type="email" placeholder="E-mail Administrativo" value={emailLogin} onChange={e => setEmailLogin(e.target.value)} style={inputStyle} required />
+          <input type="password" placeholder="Senha" value={senhaLogin} onChange={e => setSenhaLogin(e.target.value)} style={inputStyle} required />
+          <button type="submit" style={{...btnStyle, width: '100%', marginTop: '15px'}}>Entrar no Painel</button>
+          {erroLogin && <p style={{ color: '#ff4d4d', marginTop: '10px', textAlign: 'center' }}>{erroLogin}</p>}
+        </form>
+      </div>
+    );
+  }
+
+  // ==========================================
+  // RENDERIZAÇÃO PAINEL ADMIN (LOGADO)
+  // ==========================================
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', color: '#fff' }}>
-      <h2 style={{ color: '#e62117' }}>Painel Admin - Futebol Raiz FG</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+        <h2 style={{ color: '#e62117' }}>Painel Admin - Futebol Raiz</h2>
+        <button onClick={sair} style={{ backgroundColor: '#444', color: '#fff', border: '1px solid #666', padding: '8px 16px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>Sair (Logout)</button>
+      </div>
+
+      {/* 🚀 CONFIGURAÇÃO DO SPLASH SCREEN */}
+      <div style={{ background: '#1a1a1a', border: '1px solid #333', padding: '20px', borderRadius: '10px', marginTop: '20px' }}>
+        <h3 style={{ color: '#00ff88' }}>🚀 Anúncio de Abertura (Splash Screen)</h3>
+        <p style={{ fontSize: '14px', color: '#aaa', marginBottom: '15px' }}>
+          Faça upload de uma imagem patrocinada e defina até quando ela deve aparecer na abertura do app.
+        </p>
+        <form onSubmit={salvarSplash} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <input type="file" accept="image/*" onChange={(e) => setSplashImagem(e.target.files[0])} style={inputStyle} required />
+          <label style={{ fontSize: '14px', color: '#ccc' }}>Aparecer na abertura ATÉ o dia/hora:</label>
+          <input type="datetime-local" value={splashDataHora} onChange={(e) => setSplashDataHora(e.target.value)} style={inputStyle} required />
+          
+          <div style={{ display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
+            <button type="submit" style={{ ...btnStyle, backgroundColor: '#00cc66', flex: 1, minWidth: '200px' }}>Programar Splash</button>
+            <button type="button" onClick={desativarSplash} style={{ ...btnStyle, backgroundColor: '#444', flex: 1, minWidth: '200px' }}>Desativar Agora</button>
+          </div>
+        </form>
+        {splashMsg && <p style={{ marginTop: '15px', color: '#fff', fontWeight: 'bold', background: 'rgba(255,255,255,0.1)', padding: '10px', borderRadius: '5px' }}>{splashMsg}</p>}
+      </div>
       
       {/* ⚙️ CONFIGURAÇÕES GERAIS */}
       <div style={{ background: '#1a1a1a', border: '1px solid #333', padding: '20px', borderRadius: '10px', marginTop: '20px' }}>

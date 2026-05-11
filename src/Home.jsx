@@ -13,6 +13,9 @@ export default function Home() {
   const [splashImg, setSplashImg] = useState(null);
   const [mostrarSplash, setMostrarSplash] = useState(false);
   
+  // NOVO: Controle do botão "Ver mais"
+  const [descricaoExpandida, setDescricaoExpandida] = useState(false);
+  
   const playerContainerRef = useRef(null);
 
   useEffect(() => {
@@ -28,9 +31,7 @@ export default function Home() {
     });
 
     const unsubscribeConfig = onSnapshot(doc(db, "config", "geral"), (docSnap) => {
-      if (docSnap.exists()) {
-        setMostrarStats(docSnap.data().mostrarStats ?? true);
-      }
+      if (docSnap.exists()) setMostrarStats(docSnap.data().mostrarStats ?? true);
     });
 
     const unsubSplash = onSnapshot(doc(db, "config", "splash"), (docSnap) => {
@@ -51,21 +52,14 @@ export default function Home() {
       alert(`📢 NOVO ALERTA:\n\n${payload.notification.title}\n${payload.notification.body}`);
     });
 
-    return () => { 
-      unsubscribeVideos(); 
-      unsubscribeConfig(); 
-      unsubSplash(); 
-      unsubscribeMensagens(); 
-    };
+    return () => { unsubscribeVideos(); unsubscribeConfig(); unsubSplash(); unsubscribeMensagens(); };
   }, [videoAtual, splashImg]);
 
   const pedirPermissaoNotificacao = async () => {
     try {
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
-        const token = await getToken(messaging, { 
-          vapidKey: 'BKQttoVmCcyQH5J4wKalKmTTBde-Hi3HD2Dmi4wgczitfNSu58kJ6tBWC96WI7PiouYIgwTOa_vTFzQspe9vBu8' 
-        });
+        const token = await getToken(messaging, { vapidKey: 'BKQttoVmCcyQH5J4wKalKmTTBde-Hi3HD2Dmi4wgczitfNSu58kJ6tBWC96WI7PiouYIgwTOa_vTFzQspe9vBu8' });
         if (token) {
           await setDoc(doc(db, 'tokens', token), { token: token, data: new Date() });
           alert('🔔 Uhuu! Você ativou os alertas e está a apoiar a nossa equipa!');
@@ -74,20 +68,18 @@ export default function Home() {
         alert('Você bloqueou os alertas. Ative no cadeado do navegador para não perder nenhum jogo!');
       }
     } catch (error) {
-      console.error('Erro ao ativar notificações:', error);
       alert('Ops! Os alertas não são suportados neste dispositivo ainda.');
     }
   };
 
   const videosFiltrados = videos.filter(video => 
-    !video.oculto && 
-    (video.title.toLowerCase().includes(busca.toLowerCase()) || 
-    (video.extraInfo && video.extraInfo.toLowerCase().includes(busca.toLowerCase())))
+    !video.oculto && (video.title.toLowerCase().includes(busca.toLowerCase()) || (video.extraInfo && video.extraInfo.toLowerCase().includes(busca.toLowerCase())))
   );
 
   const tocarVideo = (video) => {
     setVideoAtual(video);
     setAutoplay(1);
+    setDescricaoExpandida(false); // Fecha a descrição ao trocar de vídeo
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -133,10 +125,7 @@ export default function Home() {
   return (
     <div className="app-container" translate="no">
       {mostrarSplash && (
-        <div 
-          onClick={() => setMostrarSplash(false)}
-          style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: '#000', zIndex: 99999, display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}
-        >
+        <div onClick={() => setMostrarSplash(false)} style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: '#000', zIndex: 99999, display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}>
           <img src={splashImg} alt="Anúncio" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
       )}
@@ -149,10 +138,13 @@ export default function Home() {
       </header>
 
       {videoAtual ? (
-        // A SOLUÇÃO DEFINITIVA: Uma DIV com uma KEY única força a recriação limpa da tela
         <div className="player-wrapper-master" key={`player-${videoAtual.id}`}>
+          
+          {/* TÍTULO COM LETREIRO CORRENDO */}
           <div className="titulo-topo-player">
-            <span>{videoAtual.title}</span>
+            <div className="marquee-container">
+              <span dangerouslySetInnerHTML={{ __html: videoAtual.title }}></span>
+            </div>
           </div>
 
           <div className="player-section" ref={playerContainerRef}>
@@ -180,7 +172,16 @@ export default function Home() {
                  <span>🏟️ Local: {videoAtual.local || 'Não informado'}</span>
               </div>
             )}
-            <p className="admin-info">{videoAtual.extraInfo}</p>
+            
+            {/* DESCRIÇÃO COM VER MAIS */}
+            <div className="descricao-container">
+              <p className={`admin-info ${descricaoExpandida ? 'expandido' : 'truncado'}`} dangerouslySetInnerHTML={{ __html: videoAtual.extraInfo }}></p>
+              {videoAtual.extraInfo && videoAtual.extraInfo.length > 80 && (
+                <button className="btn-ver-mais" onClick={() => setDescricaoExpandida(!descricaoExpandida)}>
+                  {descricaoExpandida ? 'Ver menos' : 'Ler mais'}
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="action-buttons">
@@ -201,35 +202,29 @@ export default function Home() {
       <h3 className="secao-titulo">Últimos Vídeos</h3>
       <div className="video-scroll-container">
         {videosFiltrados.map((video, index) => (
-          <div 
-            key={`list-${video.id}-${index}`} 
-            className={`video-card-horizontal ${videoAtual?.id === video.id ? 'active-card' : ''}`} 
-            onClick={() => tocarVideo(video)}
-          >
+          <div key={`list-${video.id}-${index}`} className={`video-card-horizontal ${videoAtual?.id === video.id ? 'active-card' : ''}`} onClick={() => tocarVideo(video)}>
             <div className="thumb-container">
               <img 
                 src={video.thumb.replace('maxresdefault', 'hqdefault')} 
                 alt="Miniatura" 
                 className="thumbnail" 
                 onError={(e) => {
-                  if (!e.target.src.includes('hqdefault.jpg')) {
-                    e.target.src = `https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`;
-                  } else {
-                    e.target.src = `https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`;
-                  }
+                  if (!e.target.src.includes('hqdefault.jpg')) { e.target.src = `https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`; } 
+                  else { e.target.src = `https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`; }
                 }}
               />
               <div className="play-overlay">▶</div>
             </div>
             <div className="card-info">
               <span className="video-date">{formatarData(video.dataCadastro)}</span>
-              <p className="card-title-small">{video.title}</p>
+              <p className="card-title-small" dangerouslySetInnerHTML={{ __html: video.title }}></p>
             </div>
           </div>
         ))}
       </div>
 
       <footer className="app-footer">
+        {/* ... (conteúdo do rodapé mantido igual) ... */}
         <div className="footer-content">
           <div className="footer-section">
             <h4>🎥 Transmita seu Campeonato</h4>

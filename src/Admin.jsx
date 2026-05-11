@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { db } from './firebase';
-import { collection, addDoc, getDocs, doc, updateDoc, query, where, deleteDoc, onSnapshot, setDoc } from 'firebase/firestore';
+// Adicionamos o 'orderBy' aqui nos imports!
+import { collection, addDoc, getDocs, doc, updateDoc, query, where, deleteDoc, onSnapshot, setDoc, orderBy } from 'firebase/firestore';
 
 // ==========================================
 // SUAS CHAVES FIXAS 
@@ -9,27 +10,25 @@ const MINHA_API_KEY = "AIzaSyD6cX5F356OhIxIscJZ9bhkevjX7VMmdrU";
 const MEU_CANAL_ID = "UCGB8jiI52Z5NaQbCwnEkF3A"; 
 
 export default function Admin() {
-// ... resto do código do Admin continua aqui para baixo ...
-
   const [url, setUrl] = useState('');
   const [titulo, setTitulo] = useState('');
   const [infoExtra, setInfoExtra] = useState('');
   const [mensagem, setMensagem] = useState('');
   const [syncMsg, setSyncMsg] = useState('');
   
-  // Novos Estados para o Controle Total
   const [videosLista, setVideosLista] = useState([]);
   const [mostrarStats, setMostrarStats] = useState(true);
 
-  // Carrega a lista de vídeos e a configuração em tempo real
   useEffect(() => {
-    const unsubVideos = onSnapshot(collection(db, "videos"), (snapshot) => {
+    // 1. CORREÇÃO DA ORDEM: Agora puxa organizado pela dataCadastro igual na Home!
+    const qVideos = query(collection(db, "videos"), orderBy("dataCadastro", "desc"));
+    const unsubVideos = onSnapshot(qVideos, (snapshot) => {
       setVideosLista(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
     });
 
     const unsubConfig = onSnapshot(doc(db, "config", "geral"), (docSnap) => {
       if (docSnap.exists()) {
-        setMostrarStats(docSnap.data().mostrarStats);
+        setMostrarStats(docSnap.data().mostrarStats ?? true);
       }
     });
 
@@ -44,29 +43,27 @@ export default function Admin() {
   };
 
   // ==========================================
-  // FUNÇÃO: EXCLUIR VÍDEO
+  // CORREÇÃO DO BOTÃO OCULTAR / RESTAURAR
   // ==========================================
-  const excluirVideo = async (id, tituloVideo) => {
-    if (window.confirm(`Tem certeza que deseja EXCLUIR o vídeo: "${tituloVideo}"?`)) {
+  const alternarVisibilidade = async (id, tituloVideo, estaOculto) => {
+    // Se estaOculto for undefined (vídeo antigo), considera como false.
+    const statusAtual = estaOculto === true; 
+    const acao = statusAtual ? "RESTAURAR" : "OCULTAR";
+    
+    if (window.confirm(`Tem certeza que deseja ${acao} o vídeo: "${tituloVideo}"?`)) {
       try {
-        await deleteDoc(doc(db, "videos", id));
+        await updateDoc(doc(db, "videos", id), { oculto: !statusAtual });
       } catch (error) {
-        alert("Erro ao excluir vídeo.");
+        alert(`Erro ao ${acao.toLowerCase()} vídeo.`);
       }
     }
   };
 
-  // ==========================================
-  // FUNÇÃO: SALVAR CONFIGURAÇÃO (Ligar/Desligar Estatísticas)
-  // ==========================================
   const salvarConfigStats = async (valor) => {
     setMostrarStats(valor);
     await setDoc(doc(db, "config", "geral"), { mostrarStats: valor }, { merge: true });
   };
 
-  // ==========================================
-  // FUNÇÕES DO YOUTUBE (Automação)
-  // ==========================================
   const sincronizarYouTube = async () => {
     if (!MINHA_API_KEY || MINHA_API_KEY.includes("COLE")) { 
       setSyncMsg('⚠️ API Key não configurada!'); return; 
@@ -125,7 +122,7 @@ export default function Admin() {
             videoId: videoId, url: `https://www.youtube.com/watch?v=${videoId}`,
             title: item.snippet.title, thumb: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
             extraInfo: item.snippet.description.substring(0, 100) + '...',
-            dataCadastro: new Date(item.snippet.publishedAt), views: '0', likes: '0', local: 'YouTube'
+            dataCadastro: new Date(item.snippet.publishedAt), views: '0', likes: '0', local: 'YouTube', oculto: false
           });
           novosAdicionados++;
         }
@@ -145,7 +142,7 @@ export default function Admin() {
     try {
       await addDoc(collection(db, "videos"), {
         videoId: videoId, url: url, title: titulo, thumb: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
-        extraInfo: infoExtra, dataCadastro: new Date(), views: 0, likes: 0, local: 'Manual'
+        extraInfo: infoExtra, dataCadastro: new Date(), views: 0, likes: 0, local: 'Manual', oculto: false
       });
       setMensagem('Vídeo adicionado com sucesso!'); setUrl(''); setTitulo(''); setInfoExtra('');
     } catch (error) { setMensagem('Erro ao salvar vídeo.'); }
@@ -179,17 +176,16 @@ export default function Admin() {
         {syncMsg && <p style={{ marginTop: '15px', color: '#fff', fontWeight: 'bold' }}>{syncMsg}</p>}
       </div>
 
-      {/* 🗑️ GERENCIAR VÍDEOS (EXCLUIR) */}
       {/* 👁️ GERENCIAR VÍDEOS (OCULTAR / RESTAURAR) */}
       <div style={{ background: '#1a1a1a', border: '1px solid #333', padding: '20px', borderRadius: '10px', marginTop: '20px' }}>
         <h3 style={{ color: '#ffcc00' }}>👁️ Gerenciar Vídeos</h3>
         <p style={{ fontSize: '14px', color: '#aaa', marginBottom: '15px' }}>Total de vídeos no banco: {videosLista.length}</p>
-        <div style={{ maxHeight: '300px', overflowY: 'auto', paddingRight: '10px', border: '1px solid #333', borderRadius: '8px' }}>
+        <div style={{ maxHeight: '400px', overflowY: 'auto', paddingRight: '10px', border: '1px solid #333', borderRadius: '8px' }}>
           {videosLista.map(video => (
             <div key={video.id} style={{ 
               display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', 
               borderBottom: '1px solid #222', 
-              background: video.oculto ? '#331111' : '#111', /* Fica avermelhado se estiver oculto */
+              background: video.oculto ? '#331111' : '#111', 
               opacity: video.oculto ? 0.6 : 1
             }}>
               <span style={{ fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '75%', textDecoration: video.oculto ? 'line-through' : 'none' }}>
@@ -208,6 +204,7 @@ export default function Admin() {
           ))}
         </div>
       </div>
+
       <hr style={{ borderColor: '#333', margin: '30px 0' }}/>
       
       {/* ➕ CADASTRO MANUAL */}

@@ -53,7 +53,7 @@ export default function Home() {
           setSplashImg(dados.urlImagem);
           setMostrarSplash(true);
           
-          // O Splash some automaticamente após 7 a 10 segundos (aqui configurado para 7000ms)
+          // O Splash some automaticamente após 7 a 10 segundos
           setTimeout(() => {
             setMostrarSplash(false);
           }, 7000);
@@ -246,11 +246,8 @@ export default function Home() {
           <p className="no-results">Nenhum vídeo encontrado para essa busca.</p>
         )}
       </div>
-    </div>
-  );
-}
 
-{/* ========================================== */}
+      {/* ========================================== */}
       {/* RODAPÉ PROFISSIONAL (VENDA, LINKS E DEV) */}
       {/* ========================================== */}
       <footer className="app-footer">
@@ -302,7 +299,7 @@ export default function Home() {
 
         </div>
 
-      <div className="footer-bottom">
+        <div className="footer-bottom">
           <p>&copy; {new Date().getFullYear()} Futebol Raiz - FG. Todos os direitos reservados.</p>
         </div>
       </footer>

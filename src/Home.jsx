@@ -16,7 +16,6 @@ export default function Home() {
   const playerContainerRef = useRef(null);
 
   useEffect(() => {
-    // 1. Carrega os vídeos
     const q = query(collection(db, "videos"), orderBy("dataCadastro", "desc"));
     const unsubscribeVideos = onSnapshot(q, (snapshot) => {
       const videosData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -28,14 +27,12 @@ export default function Home() {
       }
     });
 
-    // 2. Carrega configuração geral
     const unsubscribeConfig = onSnapshot(doc(db, "config", "geral"), (docSnap) => {
       if (docSnap.exists()) {
         setMostrarStats(docSnap.data().mostrarStats ?? true);
       }
     });
 
-    // 3. Carrega o Splash Screen
     const unsubSplash = onSnapshot(doc(db, "config", "splash"), (docSnap) => {
       if (docSnap.exists()) {
         const dados = docSnap.data();
@@ -49,9 +46,9 @@ export default function Home() {
       }
     });
 
-    // 4. NOVO: Escuta as mensagens com o App aberto na tela!
+    // Escutador Blindado para o App Aberto
     const unsubscribeMensagens = onMessage(messaging, (payload) => {
-      console.log('Mensagem recebida com app aberto:', payload);
+      console.log('Alerta recebido!', payload);
       alert(`📢 NOVO ALERTA:\n\n${payload.notification.title}\n${payload.notification.body}`);
     });
 
@@ -63,7 +60,6 @@ export default function Home() {
     };
   }, [videoAtual, splashImg]);
 
-  // Função para ativar os alertas e salvar no banco
   const pedirPermissaoNotificacao = async () => {
     try {
       const permission = await Notification.requestPermission();
@@ -73,14 +69,14 @@ export default function Home() {
         });
         if (token) {
           await setDoc(doc(db, 'tokens', token), { token: token, data: new Date() });
-          alert('🔔 Uhuu! Você ativou os alertas. Obrigado por apoiar o projeto!');
+          alert('🔔 Uhuu! Você ativou os alertas e está a apoiar a nossa equipa!');
         }
       } else {
-        alert('Você bloqueou os alertas. Ative no cadeado do navegador para não perder nenhum jogo!');
+        alert('Você bloqueou os alertas. Ative no cadeado do navegador para não perder o jogo!');
       }
     } catch (error) {
       console.error('Erro ao ativar notificações:', error);
-      alert('Ops! Os alertas não são suportados neste navegador/dispositivo ainda.');
+      alert('Ops! Os alertas não são suportados neste dispositivo ainda.');
     }
   };
 
@@ -115,7 +111,7 @@ export default function Home() {
       try {
         await navigator.share({
           title: 'Futebol Raiz - FG',
-          text: 'Venha apoiar os nossos atletas do Sub-12! Assista aos melhores jogos aqui.',
+          text: 'Venha apoiar os nossos atletas! Assista aos melhores jogos aqui.',
           url: window.location.origin, 
         });
       } catch (error) {}
@@ -136,8 +132,7 @@ export default function Home() {
   };
 
   return (
-    <div className="app-container">
-      {/* Tela de Anúncio Splash */}
+    <div className="app-container" translate="no">
       {mostrarSplash && (
         <div 
           onClick={() => setMostrarSplash(false)}
@@ -147,7 +142,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Cabeçalho */}
       <header className="header-banner">
         <div className="banner-overlay"></div>
         <div className="header-content">
@@ -158,7 +152,8 @@ export default function Home() {
       {videoAtual ? (
         <>
           <div className="titulo-topo-player">
-            <span>{videoAtual.title}</span>
+            {/* BLINDAGEM CONTRA TRADUTORES (Evita o removeChild error) */}
+            <span dangerouslySetInnerHTML={{ __html: videoAtual.title }}></span>
           </div>
 
           <div className="player-section" ref={playerContainerRef}>
@@ -186,7 +181,7 @@ export default function Home() {
                  <span>🏟️ Local: {videoAtual.local || 'Não informado'}</span>
               </div>
             )}
-            <p className="admin-info">{videoAtual.extraInfo}</p>
+            <p className="admin-info" dangerouslySetInnerHTML={{ __html: videoAtual.extraInfo }}></p>
           </div>
 
           <div className="action-buttons">
@@ -200,7 +195,6 @@ export default function Home() {
         <div style={{ padding: '20px', textAlign: 'center' }}><p>A carregar vídeos...</p></div>
       )}
 
-      {/* Busca e Lista de Vídeos */}
       <div className="search-container">
         <input type="text" placeholder="Procurar vídeos..." value={busca} onChange={(e) => setBusca(e.target.value)} className="search-input" />
       </div>
@@ -214,13 +208,16 @@ export default function Home() {
             onClick={() => tocarVideo(video)}
           >
             <div className="thumb-container">
+              {/* BLINDAGEM DE IMAGENS 404 */}
               <img 
-                src={video.thumb} 
-                alt={video.title} 
+                src={video.thumb.replace('maxresdefault', 'hqdefault')} 
+                alt="Miniatura" 
                 className="thumbnail" 
                 onError={(e) => {
                   if (!e.target.src.includes('hqdefault.jpg')) {
                     e.target.src = `https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`;
+                  } else {
+                    e.target.src = `https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`;
                   }
                 }}
               />
@@ -228,30 +225,30 @@ export default function Home() {
             </div>
             <div className="card-info">
               <span className="video-date">{formatarData(video.dataCadastro)}</span>
-              <p className="card-title-small">{video.title}</p>
+              {/* BLINDAGEM CONTRA TRADUTORES */}
+              <p className="card-title-small" dangerouslySetInnerHTML={{ __html: video.title }}></p>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Rodapé Comercial */}
       <footer className="app-footer">
         <div className="footer-content">
           <div className="footer-section">
             <h4>🎥 Transmita seu Campeonato</h4>
             <p>Aumente a visibilidade do seu torneio com transmissões ao vivo em alta qualidade.</p>
-            <a href="https://wa.me/5519998584530?text=Olá%20Flávio!%20Quero%20fazer%20uma%20transmissão%20do%20meu%20campeonato." target="_blank" rel="noopener noreferrer" className="btn-whatsapp">📲 Orçamento de Transmissão</a>
+            <a href="https://wa.me/5519998584530?text=Olá%20Flávio!%20Quero%20fazer%20uma%20transmissão." target="_blank" rel="noopener noreferrer" className="btn-whatsapp">📲 Orçamento de Transmissão</a>
           </div>
           <div className="footer-section sponsor-section">
             <h4>🚀 Divulgue sua Marca</h4>
             <p>Apareça para milhares de apaixonados por futebol! Anuncie na tela de abertura do App.</p>
-            <a href="https://wa.me/5519998584530?text=Olá%20Flávio!%20Tenho%20interesse%20em%20anunciar%20minha%20marca%20no%20app%20Futebol%20Raiz." target="_blank" rel="noopener noreferrer" className="btn-whatsapp btn-sponsor">💼 Seja um Patrocinador</a>
+            <a href="https://wa.me/5519998584530?text=Olá%20Flávio!%20Tenho%20interesse%20em%20anunciar." target="_blank" rel="noopener noreferrer" className="btn-whatsapp btn-sponsor">💼 Seja um Patrocinador</a>
           </div>
           <div className="footer-section dev-contact">
             <h4>💻 Desenvolvedor</h4>
             <span className="dev-name">Geraldo Filho</span>
             <p>Tenha um App profissional como este para alavancar o seu negócio.</p>
-            <a href="https://wa.me/5519999371408?text=Olá%20Geraldo!%20Gostaria%20de%20um%20orçamento%20para%20criar%20um%20app." className="dev-link">📱 WhatsApp: (19) 99937-1408</a>
+            <a href="https://wa.me/5519999371408" className="dev-link">📱 WhatsApp: (19) 99937-1408</a>
             <a href="mailto:geraldof1978@gmail.com" className="dev-link">✉️ E-mail: geraldof1978@gmail.com</a>
           </div>
         </div>

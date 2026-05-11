@@ -180,26 +180,34 @@ export default function Admin() {
       </div>
 
       {/* 🗑️ GERENCIAR VÍDEOS (EXCLUIR) */}
+      {/* 👁️ GERENCIAR VÍDEOS (OCULTAR / RESTAURAR) */}
       <div style={{ background: '#1a1a1a', border: '1px solid #333', padding: '20px', borderRadius: '10px', marginTop: '20px' }}>
-        <h3 style={{ color: '#ff4d4d' }}>🗑️ Gerenciar Vídeos</h3>
-        <p style={{ fontSize: '14px', color: '#aaa', marginBottom: '15px' }}>Total de vídeos: {videosLista.length}</p>
+        <h3 style={{ color: '#ffcc00' }}>👁️ Gerenciar Vídeos</h3>
+        <p style={{ fontSize: '14px', color: '#aaa', marginBottom: '15px' }}>Total de vídeos no banco: {videosLista.length}</p>
         <div style={{ maxHeight: '300px', overflowY: 'auto', paddingRight: '10px', border: '1px solid #333', borderRadius: '8px' }}>
           {videosLista.map(video => (
-            <div key={video.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', borderBottom: '1px solid #222', background: '#111' }}>
-              <span style={{ fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '75%' }}>
-                {video.title}
+            <div key={video.id} style={{ 
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', 
+              borderBottom: '1px solid #222', 
+              background: video.oculto ? '#331111' : '#111', /* Fica avermelhado se estiver oculto */
+              opacity: video.oculto ? 0.6 : 1
+            }}>
+              <span style={{ fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '75%', textDecoration: video.oculto ? 'line-through' : 'none' }}>
+                {video.oculto ? '🚫 [OCULTO] ' : ''}{video.title}
               </span>
               <button 
-                onClick={() => excluirVideo(video.id, video.title)} 
-                style={{ backgroundColor: '#e62117', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                onClick={() => alternarVisibilidade(video.id, video.title, video.oculto)} 
+                style={{ 
+                  backgroundColor: video.oculto ? '#00cc66' : '#e62117', 
+                  color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' 
+                }}
               >
-                Excluir
+                {video.oculto ? 'Restaurar' : 'Ocultar'}
               </button>
             </div>
           ))}
         </div>
       </div>
-
       <hr style={{ borderColor: '#333', margin: '30px 0' }}/>
       
       {/* ➕ CADASTRO MANUAL */}

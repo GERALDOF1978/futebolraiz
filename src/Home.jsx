@@ -15,16 +15,20 @@ export default function Home() {
   
   const playerContainerRef = useRef(null);
 
-  useEffect(() => {
-    // 1. Busca os vídeos
+useEffect(() => {
     const q = query(collection(db, "videos"), orderBy("dataCadastro", "desc"));
     const unsubscribeVideos = onSnapshot(q, (snapshot) => {
       const videosData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setVideos(videosData);
-      if (videosData.length > 0 && !videoAtual) {
-        setVideoAtual(videosData[0]);
+      
+      // AQUI: Pega apenas os vídeos que NÃO estão ocultos para tocar primeiro
+      const videosVisiveis = videosData.filter(v => !v.oculto);
+      
+      if (videosVisiveis.length > 0 && !videoAtual) {
+        setVideoAtual(videosVisiveis[0]);
       }
     });
+//...
 
     // 2. Escuta o botão liga/desliga do painel Admin
     const unsubscribeConfig = onSnapshot(doc(db, "config", "geral"), (docSnap) => {
@@ -37,9 +41,11 @@ export default function Home() {
     return () => { unsubscribeVideos(); unsubscribeConfig(); };
   }, [videoAtual]);
 
+ // Aqui nós avisamos que, além de bater com a busca, o vídeo NÃO pode estar oculto
   const videosFiltrados = videos.filter(video => 
-    video.title.toLowerCase().includes(busca.toLowerCase()) || 
-    (video.extraInfo && video.extraInfo.toLowerCase().includes(busca.toLowerCase()))
+    !video.oculto && 
+    (video.title.toLowerCase().includes(busca.toLowerCase()) || 
+    (video.extraInfo && video.extraInfo.toLowerCase().includes(busca.toLowerCase())))
   );
 
   const tocarVideo = (video) => {

@@ -181,11 +181,11 @@ const pedirPermissaoNotificacao = async () => {
 
           <div className="action-buttons">
             <button className="btn-action" onClick={compartilharApp}>
-              📤 Partilhar
+              📤 Compartilhar
             </button>
 
             <a href={`https://www.youtube.com/watch?v=${videoAtual.videoId || pegarIdDoVideo(videoAtual.url)}`} target="_blank" rel="noopener noreferrer" className="btn-action">
-              👍 Like
+              👍 Curtir
             </a>
 
             <button className="btn-action" onClick={pedirPermissaoNotificacao} style={{ background: '#e62117', color: '#fff' }}>
@@ -193,7 +193,7 @@ const pedirPermissaoNotificacao = async () => {
             </button>
             
             <a href="https://www.youtube.com/@futebolraiz-fg?sub_confirmation=1" target="_blank" rel="noopener noreferrer" className="btn-action btn-inscrever">
-              🔴 Subscrever
+              🔴 Inscrever-se
             </a>
           </div>
         </>

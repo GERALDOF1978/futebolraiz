@@ -200,19 +200,48 @@ export default function Home() {
         ))}
       </div>
 
+     {/* ========================================== */}
+      {/* RODAPÉ PREMIUM (VENDAS E PATROCÍNIOS) */}
+      {/* ========================================== */}
       <footer className="app-footer">
         <div className="footer-content">
+          
+          {/* 1. Venda para Campeonatos (Transmissão) */}
           <div className="footer-section">
-            <h4>🎥 Transmissões</h4>
-            <p>Leve a emoção do seu campeonato para o mundo!</p>
-            <a href="https://wa.me/5519998584530" target="_blank" rel="noopener noreferrer" className="btn-whatsapp">📲 Contactar Flávio</a>
+            <h4>🎥 Transmita seu Campeonato</h4>
+            <p>Aumente a visibilidade do seu torneio com transmissões ao vivo em alta qualidade, narração e placar na tela.</p>
+            <a 
+              href="https://wa.me/5519998584530?text=Olá%20Flávio!%20Quero%20fazer%20uma%20transmissão%20do%20meu%20campeonato." 
+              target="_blank" rel="noopener noreferrer" className="btn-whatsapp"
+            >
+              📲 Orçamento de Transmissão
+            </a>
           </div>
+
+          {/* 2. Venda para Marcas (Patrocínios no App e Vídeo) */}
+          <div className="footer-section sponsor-section">
+            <h4>🚀 Divulgue sua Marca</h4>
+            <p>Apareça para milhares de apaixonados por futebol! Anuncie na tela de abertura do App ou durante nossas transmissões ao vivo.</p>
+            <a 
+              href="https://wa.me/5519998584530?text=Olá%20Flávio!%20Tenho%20interesse%20em%20anunciar%20minha%20marca%20no%20app%20Futebol%20Raiz." 
+              target="_blank" rel="noopener noreferrer" className="btn-whatsapp btn-sponsor"
+            >
+              💼 Seja um Patrocinador
+            </a>
+          </div>
+          
+          {/* 3. Desenvolvedor (Seu portfólio) */}
           <div className="footer-section dev-contact">
             <h4>💻 Desenvolvedor</h4>
             <span className="dev-name">Geraldo Filho</span>
-            <a href="https://wa.me/5519999371408" className="dev-link">📱 (19) 99937-1408</a>
-            <a href="mailto:geraldof1978@gmail.com" className="dev-link">✉️ geraldof1978@gmail.com</a>
+            <p>Tenha um App profissional como este para alavancar o seu negócio.</p>
+            <a href="https://wa.me/5519999371408?text=Olá%20Geraldo!%20Gostaria%20de%20um%20orçamento%20para%20criar%20um%20app." className="dev-link">📱 WhatsApp: (19) 99937-1408</a>
+            <a href="mailto:geraldof1978@gmail.com" className="dev-link">✉️ E-mail: geraldof1978@gmail.com</a>
           </div>
+
+        </div>
+        <div className="footer-bottom">
+          <p>&copy; {new Date().getFullYear()} Futebol Raiz - FG. Todos os direitos reservados.</p>
         </div>
       </footer>
     </div>

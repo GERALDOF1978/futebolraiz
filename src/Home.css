@@ -347,40 +347,68 @@
   font-size: 11px;
   color: #555;
 }
-
 /* =========================================
-   ESTILOS DO TÍTULO PEQUENO
+   CARD DO TÍTULO DO VÍDEO (NOVO VISUAL BRANCO)
    ========================================= */
 .titulo-topo-player {
   width: 100%;
   max-width: 800px;
-  margin: 0 auto 5px auto;
-  padding: 8px 15px;
-  background-color: #111;
-  border-left: 4px solid #e62117;
-  border-radius: 4px;
+  margin: 0 auto 10px auto;
+  padding: 12px 18px;
+  background-color: #ffffff; /* Fundo Branco */
+  border-left: 6px solid #e62117; /* Tarja Vermelha do YouTube */
+  border-radius: 8px; /* Cantos arredondados */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); /* Sombra para destacar do fundo preto */
   box-sizing: border-box;
 }
 
 .titulo-topo-player span {
-  color: #fff;
-  font-size: 13px;
-  font-weight: 600;
+  color: #0f0f0f; /* Fonte preta */
+  font-size: 15px;
+  font-weight: 900; /* Bem chamativo */
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  line-height: 1.4; /* Espaçamento entre as linhas */
   display: block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis; /* Coloca os '...' se o título for muito longo */
+  white-space: normal; /* PERMITE A QUEBRA DE LINHA */
+  word-wrap: break-word;
 }
 
-.card-title-small {
-  color: #ccc;
-  font-size: 12px;
-  margin: 5px 0 0 0;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+/* =========================================
+   BOTÕES DE VENDAS E PATROCÍNIO (RODAPÉ)
+   ========================================= */
+.btn-whatsapp {
+  display: inline-block;
+  background: #25D366; /* Verde WhatsApp */
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px; /* Quadrado com cantos arredondados fica mais formal */
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+
+.btn-whatsapp:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5);
+}
+
+/* Botão Dourado para Vender Patrocínio */
+.btn-sponsor {
+  background: #ffcc00; /* Dourado premium */
+  color: #000;
+  box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3);
+}
+
+.btn-sponsor:hover {
+  background: #ffd633;
+  box-shadow: 0 6px 20px rgba(255, 204, 0, 0.5);
+}
+
+.sponsor-section h4 {
+  color: #ffcc00; /* Título combina com o botão */
 }

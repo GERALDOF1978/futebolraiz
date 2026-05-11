@@ -79,16 +79,24 @@ export default function Home() {
           
         <div className="player-section" ref={playerContainerRef}>
             <div className="player-wrapper">
+              
               <ReactPlayer 
-                url={videoAtual.url} 
-                playing={true} // Tenta tocar
-                muted={true}   // ADICIONE ISTO: browsers móveis exigem mudo para autoplay
-                controls={true} 
-                width="100%" 
-                height="100%" 
-                className="react-player"
-                playsinline={true} // IMPORTANTE: para tocar dentro do app no iPhone
-              />
+  key={videoAtual.url} /* ISSO É A MÁGICA: Força o recarregamento ao trocar de vídeo */
+  url={videoAtual.url} 
+  playing={true} 
+  controls={true} 
+  width="100%" 
+  height="100%" 
+  className="react-player"
+  config={{
+    youtube: {
+      playerVars: { 
+        autoplay: 1,      /* Força o YouTube a dar play */
+        playsinline: 1    /* Evita que o iPhone abra o player nativo em tela cheia do nada */
+      }
+    }
+  }}
+/>
             </div>
             <button className="btn-virar-tela" onClick={virarTela}>⛶</button>
           </div>

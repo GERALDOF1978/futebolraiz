@@ -302,11 +302,11 @@ export default function Home() {
 
         </div>
 
-        <div className="footer-bottom">
+      <div className="footer-bottom">
           <p>&copy; {new Date().getFullYear()} Futebol Raiz - FG. Todos os direitos reservados.</p>
         </div>
       </footer>
 
-    </div> /* Fim do app-container */
+    </div>
   );
 }

@@ -347,30 +347,45 @@
   font-size: 11px;
   color: #555;
 }
+
 /* =========================================
-   CARD DO TÍTULO DO VÍDEO (NOVO VISUAL BRANCO)
+   LETREIRO DIGITAL (MARQUEE) NO TÍTULO
    ========================================= */
 .titulo-topo-player {
   width: 100%;
   max-width: 800px;
   margin: 0 auto 10px auto;
-  padding: 12px 18px;
+  padding: 12px 0; /* Tirámos o padding lateral para o texto sumir bem encostado à borda */
   background-color: #ffffff; /* Fundo Branco */
   border-left: 6px solid #e62117; /* Tarja Vermelha do YouTube */
   border-radius: 8px; /* Cantos arredondados */
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); /* Sombra para destacar do fundo preto */
   box-sizing: border-box;
+  overflow: hidden; /* Esconde o texto que sai da caixa */
+  position: relative;
 }
 
-.titulo-topo-player span {
+.marquee-container {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap !important; /* PROÍBE A QUEBRA DE LINHA */
+}
+
+.marquee-container span {
+  display: inline-block;
   color: #0f0f0f; /* Fonte preta */
   font-size: 15px;
   font-weight: 900; /* Bem chamativo */
   text-transform: uppercase;
-  line-height: 1.4; /* Espaçamento entre as linhas */
-  display: block;
-  white-space: normal; /* PERMITE A QUEBRA DE LINHA */
-  word-wrap: break-word;
+  white-space: nowrap !important; 
+  padding-left: 100%; /* Joga o texto todo para a direita para começar a correr */
+  animation: letreiro-scroll 15s linear infinite; /* 15s é a velocidade, pode aumentar ou diminuir */
+}
+
+/* O motor que faz o texto deslizar */
+@keyframes letreiro-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
 }
 
 /* =========================================

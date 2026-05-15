@@ -124,9 +124,6 @@ export default function Home() {
 
   return (
     <div className="app-container" translate="no">
-
-      return (
-    <div className="app-container" translate="no">
       
       {/* BOTÃO FLUTUANTE PARA O ADMIN */}
       <a href="/admin" style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 9999, backgroundColor: '#e62117', color: '#fff', width: '55px', height: '55px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', fontSize: '26px', boxShadow: '0 4px 15px rgba(0,0,0,0.6)', border: '2px solid rgba(255,255,255,0.2)' }}>

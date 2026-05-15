@@ -462,3 +462,56 @@
   display: block;
   margin-top: 8px;
 }
+
+
+/* =========================================
+   DESCRIÇÃO COM BOTÃO "VER MAIS" (CORREÇÃO)
+   ========================================= */
+.descricao-container {
+  margin-top: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  border-radius: 0 8px 8px 0;
+  border-left: 5px solid #e62117;
+}
+
+.admin-info {
+  font-size: 14px;
+  color: #e0e0e0;
+  font-style: italic;
+  line-height: 1.5;
+  margin: 0;
+  transition: all 0.3s ease;
+  /* Remova o white-space: pre-wrap aqui se ele existir, pois ele impede o limite de linhas */
+}
+
+/* ESTADO FECHADO: Limita a 2 linhas com reticências */
+.admin-info.truncado {
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important; /* FORÇA AS 2 LINHAS */
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis;
+}
+
+/* ESTADO ABERTO: Mostra o texto todo */
+.admin-info.expandido {
+  display: block !important;
+  -webkit-line-clamp: unset !important;
+  overflow: visible !important;
+}
+
+.btn-ver-mais {
+  background: none;
+  border: none;
+  color: #e62117; 
+  font-weight: bold;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 8px 0 0 0;
+  text-transform: uppercase;
+}
+
+.btn-ver-mais:hover {
+  text-decoration: underline;
+}

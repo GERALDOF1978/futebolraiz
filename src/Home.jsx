@@ -125,10 +125,7 @@ export default function Home() {
   return (
     <div className="app-container" translate="no">
       
-      {/* BOTÃO FLUTUANTE PARA O ADMIN */}
-      <a href="/admin" style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 9999, backgroundColor: '#e62117', color: '#fff', width: '55px', height: '55px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', fontSize: '26px', boxShadow: '0 4px 15px rgba(0,0,0,0.6)', border: '2px solid rgba(255,255,255,0.2)' }}>
-        ⚙️
-      </a>
+     
 
       {mostrarSplash && (
     
@@ -143,10 +140,19 @@ export default function Home() {
           <img src="https://i.ibb.co/jZ5x1t1g/loginho.png" alt="Logo" className="header-logo" />
         </div>
 
-          {/* BOTÃO FLUTUANTE PARA O ADMIN */}
-      <a href="/admin" style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 9999, backgroundColor: '#e62117', color: '#fff', width: '55px', height: '55px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', fontSize: '26px', boxShadow: '0 4px 15px rgba(0,0,0,0.6)', border: '2px solid rgba(255,255,255,0.2)' }}>
-        ⚙️
-      </a> 
+        {/* BOTÃO ADMIN DISCRETO E SECRETO NO BANNER */}
+        <a href="/admin" style={{ 
+          position: 'absolute', 
+          top: '15px', 
+          right: '20px', 
+          zIndex: 10, 
+          fontSize: '18px', 
+          textDecoration: 'none', 
+          opacity: '0.3', /* Deixa a engrenagem quase transparente */
+          cursor: 'pointer'
+        }}>
+          ⚙️
+        </a>
       </header>
 
       {videoAtual ? (

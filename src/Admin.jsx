@@ -31,6 +31,11 @@ export default function Admin() {
   const [textoAlerta, setTextoAlerta] = useState('');
   const [statusEnvio, setStatusEnvio] = useState('');
 
+  // Estados para Criar Novo Admin
+  const [novoAdminEmail, setNovoAdminEmail] = useState('');
+  const [novoAdminSenha, setNovoAdminSenha] = useState('');
+  const [statusNovoAdmin, setStatusNovoAdmin] = useState('');
+
   const auth = getAuth();
 
   useEffect(() => {
@@ -206,6 +211,32 @@ export default function Admin() {
     } catch (error) { setMensagem('Erro ao salvar.'); }
   };
 
+
+  const criarNovoAdmin = async (e) => {
+    e.preventDefault();
+    setStatusNovoAdmin('A registar novo administrador...');
+    
+    try {
+      const response = await fetch('/api/criar-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: novoAdminEmail, senha: novoAdminSenha }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setStatusNovoAdmin('✅ ' + data.message);
+        setNovoAdminEmail('');
+        setNovoAdminSenha('');
+      } else {
+        setStatusNovoAdmin(`❌ Erro: ${data.error}`);
+      }
+    } catch (error) {
+      setStatusNovoAdmin('❌ Falha na ligação com o servidor.');
+    }
+  };
+
   // ==========================================
   // TELA DE LOGIN (BLOQUEIO)
   // ==========================================
@@ -259,6 +290,35 @@ export default function Admin() {
           <button type="submit" style={{ ...btnStyle, backgroundColor: '#e62117' }}>Disparar Alerta Agora</button>
         </form>
         {statusEnvio && <p style={{ marginTop: '10px', fontWeight: 'bold', color: '#00ff88' }}>{statusEnvio}</p>}
+      </div>
+
+
+      {/* 👥 CRIAR NOVO ADMINISTRADOR */}
+      <div style={{ background: '#1a1a1a', border: '1px solid #333', padding: '20px', borderRadius: '10px', marginTop: '20px' }}>
+        <h3 style={{ color: '#3ea6ff' }}>👥 Adicionar Novo Administrador</h3>
+        <p style={{ fontSize: '13px', color: '#aaa', marginBottom: '15px' }}>Crie um login independente para a sua equipa apoiar a gestão do painel.</p>
+        
+        <form onSubmit={criarNovoAdmin} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <input 
+            type="email" 
+            placeholder="E-mail do novo administrador" 
+            value={novoAdminEmail} 
+            onChange={(e) => setNovoAdminEmail(e.target.value)} 
+            style={inputStyle} 
+            required 
+          />
+          <input 
+            type="password" 
+            placeholder="Senha (mínimo de 6 caracteres)" 
+            value={novoAdminSenha} 
+            onChange={(e) => setNovoAdminSenha(e.target.value)} 
+            style={inputStyle} 
+            minLength="6"
+            required 
+          />
+          <button type="submit" style={{ ...btnStyle, backgroundColor: '#3ea6ff' }}>Registar Administrador</button>
+        </form>
+        {statusNovoAdmin && <p style={{ marginTop: '10px', fontWeight: 'bold', color: statusNovoAdmin.includes('✅') ? '#00ff88' : '#ff4d4d' }}>{statusNovoAdmin}</p>}
       </div>
 
       {/* 🚀 CONFIGURAÇÃO DO SPLASH SCREEN */}
